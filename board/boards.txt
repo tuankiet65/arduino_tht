@@ -14,7 +14,9 @@ uno.build.f_cpu=16000000L
 uno.build.core=arduino
 uno.build.variant=standard
 
-atmega8min.name=Type 1/2/3/4 board (ATmega 8)
+###################################################
+
+atmega8min.name=Sub1/2/3/4 board (ATmega8min)
 atmega8min.upload.protocol=arduino
 atmega8min.upload.maximum_size=7680
 atmega8min.upload.speed=38400

@@ -1,74 +1,43 @@
-// ************************************************** //
-//		Library for sensing light transmit value
-//		Version 8.1 - 140609  
-//		Use 8 sensors
-//    Hiện tượng gặp phải: Khi 2 led cùng sáng thì độ sáng của led giảm,
-//    nếu cathode của 2 led nối với 2 pin khác nhau thì không sao.
-//    Truyền nhiều byte liên tục sử dụng rxReadyFlag
-//    Khi sử dụng, tên các kênh trùng với tên các pin Arduino
-//    Sửa lại một số tên hàm và thêm thư viện thAvr
-//    Bỏ kết nối trở 1K và tối ưu một số lệnh điều khiển
-//    Mắc lại mạch điện thành: SensorPin - R - AnodeLed -|>|- KathodeLed - ctrlPin
-//    Đọc ADC và sử dụng trực tiếp kết quả đo ADC để set trạng thái
-//    140609 - 14h16 - Chỉnh sửa hàm sensorRead(byte pin) để đọc được cảm biến ở kênh 10 - hoàn thiện
-// ************************************************** //
-
 #include "thVLC.h"
-#include <thVLC_digitalWriteFast.h>
+#include <digitalWriteFast.h>
 #include <thAVR.h>
 
-
-thVLC_ thVLC;
-
-#define NUMOFSENSOR	8		// define number of sensor used
-#define CHANNEL_0	2				//	Arduino digital pin 2
-
-#define USEC_PERTICK     1250    // microseconds per clock interrupt tick
-
-// ***** define times for signals in millisecond  ************ //
+#define NUMOFSENSOR	8
+#define CHANNEL_0	2				
+#define USEC_PERTICK     1250
 #define TIME_START_LOW     16
 #define TIME_START_HIGH    82
-
 #define TIME_BIT1_LOW      44    
-#define TIME_BIT1_HIGH     16    // State HIGH - led on   
-
+#define TIME_BIT1_HIGH     16
 #define TIME_BIT0_LOW      16     
-#define TIME_BIT0_HIGH     44    // State HIGH - led on 
-
-// ******************************************************//
-  
-#define GAP_TICKS          8		 // 8 * 10ms = 80ms - entry state stop receiving if led off over 80ms 
+#define TIME_BIT0_HIGH     44
+#define GAP_TICKS          8
 #define START_SIGNAL       6
 #define NUMOFBITS_RECV     8
-
-#define SKIP_START_TIME      5  // in millisecond
-#define SENSOR_HISTORY_SIZE	 2	 //
-
-// ******** define states for recording pulse ********* //
+#define SKIP_START_TIME      5
+#define SENSOR_HISTORY_SIZE	 2
 #define STATE_IDLE     2
 #define CHECK_START    3
 #define STATE_MARK     4
 #define STATE_SPACE    5
-// *********************************************************//
+#define BLOCK_ID_EEPROM_ADDR  500   
+#define SENSOR_THRESHOLD  15 
+#define DEFAULT_SENSOR_VALUE  (32768) 
 
-
-#define BLOCK_ID_EEPROM_ADDR  500   // EEPROM Address of Block ID
-
-
-const uint8_t _ctrl_R2   = A3;			// pin Arduino control 10K Ohm register for sensing light
-const uint8_t _sensorPin = A2;			// Analog pin read sensing light
+const uint8_t _ctrl_R2   = A3;			
+const uint8_t _sensorPin = A2;			
 
 typedef struct
 {
   uint8_t  ctrlPin;
   
-  uint8_t  txLedState;  				// used to save state leds
-  uint8_t  txValueBuffer;       // bộ đệm lưu các giá trị để truyền nhiều kênh đồng thời
+  uint8_t  txLedState;  				
+  uint8_t  txValueBuffer;       
   
-  uint8_t  rxTimeStateLow;			// record time of state low - led off
-  uint8_t  rxTimer;					   	// time pulses
-  uint8_t  rxState;					  	// 
-  uint8_t  rxBitCounter;		  	// count the number of bits received
+  uint8_t  rxTimeStateLow;			
+  uint8_t  rxTimer;					   	
+  uint8_t  rxState;					  	
+  uint8_t  rxBitCounter;		  	
   uint8_t  rxDecodeResult;
   uint8_t  rxResult;
   uint8_t  rxReadyFlag;
@@ -81,39 +50,37 @@ CHANNEL_STRUCT _channels[NUMOFSENSOR];
 CHANNEL_STRUCT* _rxChannel;
 CHANNEL_STRUCT* _txChannel;
 
-#define SENSOR_THRESHOLD  15 
-#define DEFAULT_SENSOR_VALUE  (32768) 
-
 uint8_t  _sensorHistoryIdx; 
 uint32_t txLastTime;
 
-// ************* define pins connected ********************* //
+thVLC_ thVLC;
+
 void thVLC_::begin()
 {	
   for (int8_t i = NUMOFSENSOR - 1; i >= 0 ; i--)
   {
     CHANNEL_STRUCT* channel = &_channels[i];
     channel->ctrlPin = CHANNEL_0 + i;    
-    //pinModeFast(i + CHANNEL_0, OUTPUT);
+    
     channel->rxState = STATE_IDLE;
     for (int8_t idx = SENSOR_HISTORY_SIZE - 1; idx >= 0; idx--)
     {
       channel->sensorHistory[idx] = DEFAULT_SENSOR_VALUE;
-      channel->txLedState = HIGH;  // txLedState = HIGH then the led off
+      channel->txLedState = HIGH;  
     }
   }
   PORTD |= 0xfc;
   PORTB |= 0x03;
-  DDRD  |= 0xfc; // set bits 2,3,4,5,6,7 of DDRD - set D2-D7 as OUTPUT
-  DDRB  |= 0x03; // set bits 0,1 of DDRB - set PB0 and PB1 as OUTPUT
+  DDRD  |= 0xfc; 
+  DDRB  |= 0x03; 
   
-  //digitalWriteFast(_sensorPin, HIGH);  // unique set pin sensor to LOW
-  //pinModeFast(_sensorPin, OUTPUT);     // set rxLedMode as default 
+  
+  
   PORTC |= _BV(PORTC2);
   DDRC  |= _BV(DDC2);
   
-  //digitalWriteFast(_ctrl_R2, LOW);     // unique set pin control 10k ohm resistor to LOW
-  //pinModeFast(_ctrl_R2, INPUT);	  	   // always connect resistor 10K ohm 
+  
+  
   PORTC &= ~_BV(PORTC3); 
   DDRC |= _BV(DDC3);
 
@@ -123,7 +90,7 @@ void thVLC_::begin()
   avrPullUpDisable();
   _rxChannel = &_channels[0];
   
-  ADMUX = 0x42;    // 0100 0010 - AVCC with external capacitor at AREF pin & analog input channel 2
+  ADMUX = 0x42;    
 }
 
 
@@ -133,8 +100,8 @@ byte thVLC_::getID()
 }
 
 
-// ******************************************************** // 
-char thVLC_::receiveReady(byte pin)   // channel - channeless of receiver (channel = 0 or 1)
+
+char thVLC_::receiveReady(byte pin)   
 {
   byte channel = pin - CHANNEL_0;
   if (channel > (NUMOFSENSOR - 1))
@@ -153,64 +120,56 @@ byte thVLC_::receiveResult(byte pin)
     return 0;
   }
   CHANNEL_STRUCT* addr = &_channels[channel]; 
-  addr->rxReadyFlag = 0;  // reset ready flag
+  addr->rxReadyFlag = 0;  
   return (addr->rxResult);
 }
-// ******************************************************* //
 
-void rxReadMode() // configure the sensor channels 
+
+void rxReadMode() 
 {	
-  /*
-  //sets the sensor pin (A2 -PIN C2) as input 
-  //pinModeFast(_sensorPin, INPUT);
-  DDRC &= (~_BV(DDC2));
-    
-  //connect resistor 10K ohm 
-  //pinModeFast(_ctrl_R2, OUTPUT); // _ctrl_R2 - connect to A3
-  DDRC |= _BV(DDC3);
-  */
+  
   DDRC = ((DDRC | _BV(DDC3)) & (~_BV(DDC2)));  
   
-  DDRD &= 0x03; // clear bits 2,3,4,5,6,7 of DDRD - set D2-D7 as INPUT 
-  DDRB &= 0xfc; // clear bits 0,1 of DDRB - set PB0 and PB1 as INPUT
-  // sets the pin "ctrlPin" as output to read the sensing light on the "channel" 
+  DDRD &= 0x03; 
+  DDRB &= 0xfc; 
+  
   digitalWriteFast(_rxChannel->ctrlPin, HIGH);
   pinModeFast(_rxChannel->ctrlPin, OUTPUT);	 
 }
 
 void rxLedMode()
 { 		
-  // recover last state's leds
+  
   digitalWriteFast(_rxChannel->ctrlPin,_rxChannel->txLedState);
-  DDRD |= 0xfc; // set bits 2,3,4,5,6,7 of DDRD - set D2-D7 as OUTPUT
-  DDRB |= 0x03; // set bits 0,1,2 of DDRB - set PB0 and PB1 as OUTPUT
-  // disconnect 10Kohm resistor to save power
-  //pinModeFast(_ctrl_R2, INPUT);	
+  DDRD |= 0xfc; 
+  DDRB |= 0x03; 
+  
+  
   DDRC &= ~(_BV(DDC3));
-  // sets the common led pin as output
-  //pinModeFast(_sensorPin, OUTPUT);
+  
+  
   DDRC |= _BV(DDC2);
 }
-// **************************************************** //
 
-// **************************************************** // 
+
+
 uint16_t rxSensorRead()   
 { 
-  rxReadMode();	// entry read mode, configure the sensor channels to read  
-  ADCSRA |= _BV(ADSC);          // start conversion
+  rxReadMode();	
+  ADCSRA |= _BV(ADSC);          
   rxLedMode();
-  // Thoi gian thuc hien ham rxLedMode() du de ADC chuyen doi xong
-  // while (ADCSRA & (_BV(ADSC)));  // wait for conversion complete  
+  
+  
   uint16_t ADC_value = ADC;
   return ADC_value;
 }
-// ******************************************************** // 
+
 
 int thVLC_::sensorRead(byte pin)
 { 
   uint16_t readValue;
   byte channel = pin - CHANNEL_0;
-  if (channel >= NUMOFSENSOR + 1)  // channel = NUMOFSENSOR + 1 = 8 --> pin = 10 -- pin 10 connect to a light sensor 
+  if (channel >= NUMOFSENSOR + 1)  
   {   
     return 0;
   }
@@ -225,25 +184,25 @@ int thVLC_::sensorRead(byte pin)
     avrTimer1InteruptDisable();
     
     DDRC = ((DDRC | _BV(DDC3)) & (~_BV(DDC2)));      
-    digitalWriteFast(10, HIGH);  // write HIGH to Arduino pin 10
-    DDRD &= 0x03;                // clear bits 2,3,4,5,6,7 of DDRD - set D2-D7 as INPUT 
-    DDRB = (DDRB & 0xfc) | 0x04; // clear bits 0,1 of DDRB - set PB0 and PB1 as INPUT ; set PB2 as output
+    digitalWriteFast(10, HIGH);  
+    DDRD &= 0x03;                
+    DDRB = (DDRB & 0xfc) | 0x04; 
     
     ADCSRA |= _BV(ADSC);
-    while (ADCSRA & (_BV(ADSC)));  // wait for conversion complete  
+    while (ADCSRA & (_BV(ADSC)));  
     readValue = ADC;
     
-    DDRB &= 0xfb;     // clear bit 2 of DDRB - set PB2 (Arduino digital pin 10) as INPUT
+    DDRB &= 0xfb;     
     avrTimer1InteruptEnable();  
   }
   return readValue;
 }
 
 
-// ************--> Detect changes in light <--*****************//   
+
 void rxDecodeSensor() 
 {  
-  // *** check sensor on ctrlPin[channel] *** //
+  
   uint16_t maxValue;
   uint16_t minValue;
   if (_rxChannel->sensorHistory[0] > _rxChannel->sensorHistory[1])
@@ -271,11 +230,11 @@ void rxDecodeSensor()
 }
 
 
-// **************** in MARK state *********************** //
+
 void rxCheckStartAndDecode()
 {   
-  if (_rxChannel->rxTimer < START_SIGNAL)     // if it is not start pulse     
-  {                     			      // get bits
+  if (_rxChannel->rxTimer < START_SIGNAL)     
+  {                     			      
     _rxChannel->rxDecodeResult = _rxChannel->rxDecodeResult << 1;
     if (_rxChannel->rxTimeStateLow > _rxChannel->rxTimer )
     {          
@@ -283,28 +242,28 @@ void rxCheckStartAndDecode()
     }  
     _rxChannel->rxBitCounter++;
   }
-  else                    	     	 // if it is start pulse
+  else                    	     	 
   {
-    _rxChannel->rxDecodeResult = 0;    // reset decode result
+    _rxChannel->rxDecodeResult = 0;    
     _rxChannel->rxBitCounter = 0;
   }    
 }
 
 
-// *************** Check start pulse in CHECK_START state ****************************/
+
 void rxCheckStartSignal()
 {
-  if (_rxChannel->rxTimer < START_SIGNAL)  // Start signal false -> entry IDLE 
+  if (_rxChannel->rxTimer < START_SIGNAL)  
   {  
     _rxChannel->rxState = STATE_IDLE;
   }
-  else		// if it is start signal
+  else		
   {
     _rxChannel->rxState = STATE_SPACE;
   }
 }
 
-// *************** record and decode receive pulse *************************** // 
+
 void rxRecordPulse()
 {
   _rxChannel->rxTimer++;
@@ -320,38 +279,38 @@ void rxRecordPulse()
     break;
     
   case CHECK_START:
-    if (_rxChannel->sensorState == 0)      // state HIGH end, check start signal
+    if (_rxChannel->sensorState == 0)      
     {
-      rxCheckStartSignal();                // check start signal, if it is start signal then recode value, else come back IDLE state
+      rxCheckStartSignal();                
       _rxChannel->rxTimer = 0;
     }   
     break;
     
-  case STATE_MARK:                         // timing MARK - state HIGH - led on     
-    if (_rxChannel->sensorState == 0)      // state HIGH ended, record time   
+  case STATE_MARK:                         
+    if (_rxChannel->sensorState == 0)      
     {                
-      rxCheckStartAndDecode();             // get bits if it's not start signal else come back STATE_IDLE
+      rxCheckStartAndDecode();             
       _rxChannel->rxState = STATE_SPACE;
-      _rxChannel->rxTimer = 0;             // reset rxTimer	  
+      _rxChannel->rxTimer = 0;             
       if(_rxChannel->rxBitCounter >= NUMOFBITS_RECV) 
       {	
-        _rxChannel->rxResult = _rxChannel->rxDecodeResult;	// update new result
-        _rxChannel->rxReadyFlag = 1;			// set ready flag
-        _rxChannel->rxDecodeResult = 0;		// reset buffer decode result 
-        _rxChannel->rxBitCounter = 0;			// reset rxBitCounter
+        _rxChannel->rxResult = _rxChannel->rxDecodeResult;	
+        _rxChannel->rxReadyFlag = 1;			
+        _rxChannel->rxDecodeResult = 0;		
+        _rxChannel->rxBitCounter = 0;			
       }
     } 
     break;     
     
-  case STATE_SPACE:                     	// timing SPACE - state LOW - led off
-    if (_rxChannel->sensorState == 1)     // state LOW just ended, record it
+  case STATE_SPACE:                     	
+    if (_rxChannel->sensorState == 1)     
     {   
       _rxChannel->rxTimeStateLow = _rxChannel->rxTimer;
       _rxChannel->rxState = STATE_MARK;
       _rxChannel->rxTimer = 0;
     } 
     else if (_rxChannel->rxTimer > GAP_TICKS)
-    {       // come back STATE_IDLE if led is turned off over GAP_TICKS time   
+    {       
         _rxChannel->rxState = STATE_IDLE;
     } 
     break;
@@ -360,7 +319,7 @@ void rxRecordPulse()
 
 
 
-// **************** control transfer led************************** //
+
 void txLedWrite(byte value)	
 {     
   byte valueBuff = value ^ 0x01;
@@ -381,33 +340,33 @@ void thVLC_::ledWrite(byte pin, byte value)
 
 void txSendStart()
 {
-  txLedWrite(HIGH);        // Led on
+  txLedWrite(HIGH);        
   delay(TIME_START_HIGH);
 }
 
 void txSendBit1()
 {
-  txLedWrite(LOW);         // Led off
+  txLedWrite(LOW);         
   delay(TIME_BIT1_LOW);        
-  txLedWrite(HIGH);        // Led on
+  txLedWrite(HIGH);        
   delay(TIME_BIT1_HIGH);         
 }
 
 void txSendBit0()
 {
-  txLedWrite(LOW);         // Led off
+  txLedWrite(LOW);         
   delay(TIME_BIT0_LOW);
-  txLedWrite(HIGH);        // Led on
+  txLedWrite(HIGH);        
   delay(TIME_BIT0_HIGH);
 }
 
 void txSendStop()
 {
-  txLedWrite(LOW);         // Led off
+  txLedWrite(LOW);         
 }
 
 
-// *********************************************** //
+
 uint8_t txMultiChannels, txLastChannels;
 
 void thVLC_::txSetByte(byte pin, byte value)
@@ -477,7 +436,7 @@ void thVLC_::txSend()
   for(int8_t bits = 0; bits < 8; bits++)
   { 
     uint8_t multiChannels = txMultiChannels;
-    // write LOW to the all of tx channels -- 
+    
     time = millis();
     for(int8_t i = 7; i >= 0; i--)
     {
@@ -490,7 +449,7 @@ void thVLC_::txSend()
     }
     while ((millis() - time) < TIME_BIT0_LOW);
  
-    // check bits to send
+    
     multiChannels = txMultiChannels;
     time = millis();
     for(int8_t i = 7; i >= 0; i--)
@@ -509,7 +468,7 @@ void thVLC_::txSend()
     }
     while ((millis() - time) < (TIME_BIT1_LOW - TIME_BIT0_LOW));
     
-    // write HIGH to the all of tx channels  
+    
     multiChannels = txMultiChannels;
     time = millis();
     for(int8_t i = 7; i >= 0; i--)
@@ -530,9 +489,9 @@ void thVLC_::txSend()
   txMultiChannels = 0;
   txLastTime = millis();
 }
-// ********************************************** //
 
-//unsigned long timeExecute;
+
+
 #if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
 #endif
 
@@ -557,29 +516,29 @@ void thVLC_::sendByte(byte pin, byte value)
       value = value << 1;
   }
   txSendStop();
-  _txChannel->rxReadyFlag = 0;	// reset rxReadyFlag of the _txChannel channel
+  _txChannel->rxReadyFlag = 0;	
   _txChannel->rxState = STATE_IDLE;
   
   txLastTime = millis();
-  //Serial.print("Time execute: ");
-  //Serial.println(timeExecute);
+  
+  
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-  //unsigned long time = micros(); 
+  
   rxDecodeSensor();  	
   rxRecordPulse();  
   if (_rxChannel->ctrlPin == (NUMOFSENSOR - 1 + CHANNEL_0))
   {
     _rxChannel = &_channels[0];   
-	  //_sensorHistoryIdx++; 
-	  //_sensorHistoryIdx %= SENSOR_HISTORY_SIZE; 
+	  
+	  
     _sensorHistoryIdx = 1 - _sensorHistoryIdx;
    
     #if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
       static uint8_t  DVcc_Idx = 16;
-      //DVcc_Idx--;
+      
       if (--DVcc_Idx == 0)
       {
         DVcc_Idx = 16;
@@ -591,5 +550,5 @@ ISR(TIMER1_COMPA_vect)
   {
     _rxChannel++;
   }
-  //timeExecute = micros() - time;
+  
 }

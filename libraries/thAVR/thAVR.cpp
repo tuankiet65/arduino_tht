@@ -1,4 +1,3 @@
-
 #include "thAVR.h"
 #include <EEPROM.h>
 
@@ -34,11 +33,7 @@ unsigned int avrGetBandgap(void)
    
   ADCSRA |= _BV( ADSC );
   while (((ADCSRA & (1 << ADSC)) != 0));
-  delayMicroseconds(10);    
-  // Nếu thiết lập tần số cho ADC lớn (hệ số chia CLK nhỏ) thì khi thay đổi kênh analog của bộ ADC 
-  // sẽ dẫn tới các kết quả chuyển đổi ADC không chính xác ở các lần chuyển đổi đầu tiên.
-  // Qua khảo sát thấy rằng nếu sau lần chuyển đổi đầu tiên (sau khi vừa chuyển kênh analog)
-  // có trễ khoảng 9us trở lên thì cho kết quả chuyển đổi ADC tốt ở lần chuyển đổi tiếp theo.
+  delayMicroseconds(10);
   ADCSRA |= _BV(ADSC);
   while (((ADCSRA &(1 << ADSC)) != 0));
   ADMUX = 0x42;     // reselect analog channel 2 
