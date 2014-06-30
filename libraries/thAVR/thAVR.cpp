@@ -6,7 +6,6 @@
 #define CHECKSUM_EEPROMADDR        502
 #define CHECK5V_EEPROMADDR         500
 
-// ********************************************************************** //
 void avrTimer1ConfigNormal(const uint16_t TopValue)
 {
   TCCR1A = 0; 
@@ -16,19 +15,15 @@ void avrTimer1ConfigNormal(const uint16_t TopValue)
   OCR1B = TopValue * 1/3; 
   TCNT1 = 0; 
 }
-// ********************************************************************** //
 
-// ********************************************************************** //
 void avrADCClockDivConfig(byte divisionFactor)
 {
   ADCSRA = (ADCSRA & ~0x07) | (divisionFactor & 0x07);
 }
-// ********************************************************************** //
 
-// ********************************************************************** //
 unsigned int avrGetBandgap(void) 
 {
-  //timer1InteruptDisable();
+  
   ADMUX = (0<<REFS1) | (1<<REFS0) | (0<<ADLAR) | (1<<MUX3) | (1<<MUX2) | (1<<MUX1) | (0<<MUX0);
    
   ADCSRA |= _BV( ADSC );
@@ -36,33 +31,24 @@ unsigned int avrGetBandgap(void)
   delayMicroseconds(10);
   ADCSRA |= _BV(ADSC);
   while (((ADCSRA &(1 << ADSC)) != 0));
-  ADMUX = 0x42;     // reselect analog channel 2 
+  ADMUX = 0x42;     
   return ADC;
 }
-// ********************************************************************** //
 
-// ********************************************************************** //
 uint16_t avrEepromReadWord(uint16_t addr)
 {
-  /*if (addr > 510)   // EEPROM 0f Atmega8: 512 byte 
-  {
-    return 0;
-  } */
+  
   uint16_t readBuff = EEPROM.read(addr) | (EEPROM.read(addr+1) << 8) ;
   return readBuff;
 }
 
-// ********************************************************************** //
 uint8_t avrDetermineOsccal(uint16_t vccValue)
 {
-  // read tow factor from eeprom
+  
   uint16_t _addFactor   = avrEepromReadWord(ADDFACTOR_EEPROMADDR);
   uint16_t _mulFactor   = avrEepromReadWord(MULFACTOR_EEPROMADDR);
   uint16_t checkSumWord = avrEepromReadWord(CHECKSUM_EEPROMADDR);
-    
   uint16_t checkSum = (_addFactor ^ _mulFactor) ^ 0xAAAA;
-  
-  // determine the factor to load into OSCCAL 
   if (checkSum != checkSumWord) 
   {
     return 0;
@@ -75,9 +61,7 @@ uint8_t avrDetermineOsccal(uint16_t vccValue)
     return (osccal >> 8);
   }
 }
-// ********************************************************************** //
 
-// ********************************************************************** //
 void avrConfigFreq()
 { 
   uint16_t DVcc = avrGetBandgap();
@@ -89,4 +73,3 @@ void avrConfigFreq()
     OSCCAL = osccalValue;
   }
 }
-// ********************************************************************** //
