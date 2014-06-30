@@ -1,8 +1,4 @@
-# See: http://code.google.com/p/arduino/wiki/Platforms
-
-##############################################################
-
-uno.name=Arduino Uno
+uno.name=Main board (Arduino Uno)
 uno.upload.protocol=arduino
 uno.upload.maximum_size=32256
 uno.upload.speed=115200
@@ -18,21 +14,16 @@ uno.build.f_cpu=16000000L
 uno.build.core=arduino
 uno.build.variant=standard
 
-##############################################################
-
-atmega8min.name=ATmega8 @ 8 MHz / 38400
-
+atmega8min.name=Type 1/2/3/4 board (ATmega 8)
 atmega8min.upload.protocol=arduino
 atmega8min.upload.maximum_size=7680
 atmega8min.upload.speed=38400
-
 atmega8min.bootloader.low_fuses=0x84
 atmega8min.bootloader.high_fuses=0xd4
 atmega8min.bootloader.path=optiboot
 atmega8min.bootloader.file=optiboot_atmega8_8mhz.hex
 atmega8min.bootloader.unlock_bits=0x3F
 atmega8min.bootloader.lock_bits=0x0F
-
 atmega8min.build.mcu=atmega8
 atmega8min.build.f_cpu=8000000L
 atmega8min.build.core=arduino
