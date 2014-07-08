@@ -9,13 +9,13 @@
 
 void avrTimer1ConfigNormal(word TopValue);
 
-#define AVR_TIMER1_TOP(microSecPerTick) (((F_CPU) / 8000000UL) * microSecPerTick)  
+#define AVR_TIMER1_TOP(microSecPerTick) (((F_CPU) / 8000000UL) * microSecPerTick)
 
 #if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
-  #define  TIMSK1  TIMSK
+#define  TIMSK1  TIMSK
 #endif
 
-#define avrTimer1OC1AInteruptEnable()   { bitSet(TIMSK1, OCIE1A); } 
+#define avrTimer1OC1AInteruptEnable()   { bitSet(TIMSK1, OCIE1A); }
 #define avrTimer1OC1AInteruptDisable()  { TIMSK1 &= ~_BV(OCIE1A); }
 #define avrTimer1OC1BInteruptEnable()   { TIMSK1 |=  _BV(OCIE1B); }
 #define avrTimer1OC1BInteruptDisable()  { TIMSK1 &= ~_BV(OCIE1B); }
@@ -33,13 +33,13 @@ void avrADCClockDivConfig(byte clkDiv);
 
 
 #if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
-  #define avrPullUpDisable()  { SFIOR |= (_BV(PUD)); }
+#define avrPullUpDisable()  { SFIOR |= (_BV(PUD)); }
 #else
-  #define avrPullUpDisable()  { MCUCR |= (_BV(PUD)); }
+#define avrPullUpDisable()  { MCUCR |= (_BV(PUD)); }
 #endif
 
 
-#define  avrEepromRead(addr)  eeprom_read_byte((uint8_t*)(addr)) 
+#define  avrEepromRead(addr)  eeprom_read_byte((uint8_t*)(addr))
 word avrEepromReadWord(word addr);
 
 word avrGetBandgap();

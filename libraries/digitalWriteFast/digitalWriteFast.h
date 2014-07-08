@@ -116,7 +116,7 @@ uint8_t register saveSreg = SREG;                          \
 cli();                                                     \
 bitWrite(*(A), __digitalPinToBit(P), (V) );                   \
 SREG=saveSreg;                                             \
-} 
+}
 
 
 #ifndef digitalWriteFast
@@ -140,12 +140,12 @@ else pinMode((P), (V)); \
 	do {if (__builtin_constant_p(P) )  __atomicWrite((uint8_t*) __digitalPinToTimer(P),P,0) \
 		else turnOffPWM((P));   \
 } while (0)
-#endif		
+#endif
 
 
 #ifndef digitalReadFast
-	#define digitalReadFast(P) ( (int) _digitalReadFast_((P)) )
-	#define _digitalReadFast_(P ) \
+#define digitalReadFast(P) ( (int) _digitalReadFast_((P)) )
+#define _digitalReadFast_(P ) \
 	(__builtin_constant_p(P) ) ? ( \
 	( BIT_READ(*digitalPinToPINReg(P), __digitalPinToBit(P))) ) : \
 	digitalRead((P))

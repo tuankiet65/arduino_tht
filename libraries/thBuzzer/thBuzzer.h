@@ -3,9 +3,8 @@
 
 #include <Arduino.h>
 
-class _thBuzzer
-{
-  public:
+class _thBuzzer {
+public:
     static void begin();
     static void sound(int ms);
 };

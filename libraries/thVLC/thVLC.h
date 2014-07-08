@@ -12,20 +12,19 @@
 #define TRI_UAN_3  3
 #define TRI_UAN_4  4
 
-class	thVLCClass
-{
-public:	
-  static void begin();
-  static byte getID();
+class	thVLCClass {
+public:
+    static void begin();
+    static byte getID();
 
-  static int sensorRead(byte pin);
-  static boolean receiveReady(byte pin);
-  static byte receiveResult(byte pin);
+    static int sensorRead(byte pin);
+    static boolean receiveReady(byte pin);
+    static byte receiveResult(byte pin);
 
-  static void ledWrite(byte pin, byte state);
-  static void sendByte(byte pin, byte value);
-  static void txSetByte(byte pin, byte value);
-  static void txSend();
+    static void ledWrite(byte pin, byte state);
+    static void sendByte(byte pin, byte value);
+    static void txSetByte(byte pin, byte value);
+    static void txSend();
 };
 
 extern thVLCClass thVLC;
