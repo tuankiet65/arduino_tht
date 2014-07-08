@@ -1,19 +1,19 @@
 #include <EEPROM.h>
 #include <digitalWriteFast.h>
-#include <common.h>
+#include <messages.h>
+#include <thBuzzer.h>
 #include <thAVR.h>
 #include <thVLC.h>
 #include <thLedMatrix.h>
 
 int i=2;
-int buzzerPin=A5;
 
 void setup(){
    Serial.begin(BAUD);
    thVLC.begin();
    thLedMatrix.begin();
    Serial.println("Started");  
-   pinMode(buzzerPin, OUTPUT);
+   thBuzzer.begin();
 }
 
 void loop(){
@@ -38,9 +38,7 @@ void loop(){
             if (thVLC.receiveResult(i)==FAIL) {
               
             } else if (thVLC.receiveResult(i)==SUCCESS){
-              digitalWrite(buzzerPin, HIGH);
-              delay(1000);
-              digitalWrite(buzzerPin, LOW);
+              thBuzzer.sound(1000);
             }
           }
       }

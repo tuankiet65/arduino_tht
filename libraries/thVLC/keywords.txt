@@ -1,4 +1,16 @@
+#######################################
+# Syntax Coloring Map For thVLC lib
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
 thVLC	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
 
 begin	KEYWORD2
 getID	KEYWORD2
@@ -15,4 +27,3 @@ TRI_UAN_1	LITERAL1
 TRI_UAN_2	LITERAL1
 TRI_UAN_3	LITERAL1
 TRI_UAN_4	LITERAL1
-THVLC_H LITERAL1

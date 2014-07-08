@@ -1,13 +1,14 @@
-thAVR KEYWORD1
+#######################################
+# Syntax Coloring Map For thAVR lib
+#######################################
 
-avrTimer1ConfigNormal KEYWORD2
-avrADCClockDivConfig KEYWORD2
-avrGetBandgap KEYWORD2
-avrEepromReadWord KEYWORD2
-avrDetermineOsccal KEYWORD2
-avrConfigFreq KEYWORD2
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
 
-ADDFACTOR_EEPROMADDR LITERAL1
-MULFACTOR_EEPROMADDR LITERAL1
-CHECKSUM_EEPROMADDR LITERAL1
-CHECK5V_EEPROMADDR LITERAL1
+thAVR	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+

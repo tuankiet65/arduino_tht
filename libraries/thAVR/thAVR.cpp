@@ -1,12 +1,13 @@
+
+
 #include "thAVR.h"
-#include <EEPROM.h>
 
-#define ADDFACTOR_EEPROMADDR       508
-#define MULFACTOR_EEPROMADDR       510
-#define CHECKSUM_EEPROMADDR        502
-#define CHECK5V_EEPROMADDR         500
+#define  MUL_FACTOR_EEPROM_ADDR  510
+#define  ADD_FACTOR_EEPROM_ADDR  508
+#define  CHECKSUM_EEPROM_ADDR    502
 
-void avrTimer1ConfigNormal(const uint16_t TopValue)
+
+void avrTimer1ConfigNormal(word TopValue)
 {
   TCCR1A = 0; 
   TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS11);
@@ -16,60 +17,56 @@ void avrTimer1ConfigNormal(const uint16_t TopValue)
   TCNT1 = 0; 
 }
 
-void avrADCClockDivConfig(byte divisionFactor)
+
+
+void avrADCClockDivConfig(byte clkDiv)
 {
-  ADCSRA = (ADCSRA & ~0x07) | (divisionFactor & 0x07);
+  ADCSRA = (ADCSRA & (~0x07)) | (clkDiv & 0x07);
 }
 
-unsigned int avrGetBandgap(void) 
+
+
+word avrGetBandgap() 
 {
   
-  ADMUX = (0<<REFS1) | (1<<REFS0) | (0<<ADLAR) | (1<<MUX3) | (1<<MUX2) | (1<<MUX1) | (0<<MUX0);
+  ADMUX = (0x01 << REFS0) | (0 << ADLAR) | (0x0E << MUX0);
    
-  ADCSRA |= _BV( ADSC );
-  while (((ADCSRA & (1 << ADSC)) != 0));
-  delayMicroseconds(10);
+  ADCSRA |= _BV( ADSC);
+  while (ADCSRA & _BV(ADSC));
+  delayMicroseconds(10);    
+  
+  
+  
+  
   ADCSRA |= _BV(ADSC);
-  while (((ADCSRA &(1 << ADSC)) != 0));
-  ADMUX = 0x42;     
+  while (ADCSRA & _BV(ADSC));
   return ADC;
 }
 
-uint16_t avrEepromReadWord(uint16_t addr)
+
+
+word avrEepromReadWord(word addr)
 {
-  
-  uint16_t readBuff = EEPROM.read(addr) | (EEPROM.read(addr+1) << 8) ;
-  return readBuff;
+  return word(avrEepromRead(addr+1), avrEepromRead(addr));
 }
 
-uint8_t avrDetermineOsccal(uint16_t vccValue)
-{
-  
-  uint16_t _addFactor   = avrEepromReadWord(ADDFACTOR_EEPROMADDR);
-  uint16_t _mulFactor   = avrEepromReadWord(MULFACTOR_EEPROMADDR);
-  uint16_t checkSumWord = avrEepromReadWord(CHECKSUM_EEPROMADDR);
-  uint16_t checkSum = (_addFactor ^ _mulFactor) ^ 0xAAAA;
-  if (checkSum != checkSumWord) 
-  {
-    return 0;
-  }
-  else
-  {
-    uint32_t factor32 = _mulFactor;
-    factor32 = factor32 * vccValue;
-    uint16_t osccal = (factor32 / 256) + _addFactor;
-    return (osccal >> 8);
-  }
-}
 
 void avrConfigFreq()
 { 
-  uint16_t DVcc = avrGetBandgap();
   
-  uint8_t osccalValue = avrDetermineOsccal(DVcc);
+  uint16_t addFactor    = avrEepromReadWord(ADD_FACTOR_EEPROM_ADDR);
+  uint16_t mulFactor    = avrEepromReadWord(MUL_FACTOR_EEPROM_ADDR);
+  uint16_t checkSumWord = avrEepromReadWord(CHECKSUM_EEPROM_ADDR);
+    
   
-  if (osccalValue != 0)
+  if (0 == (addFactor ^ mulFactor ^ checkSumWord ^ 0xAAAA)) 
   {
-    OSCCAL = osccalValue;
+    uint16_t bandgap = avrGetBandgap();
+    
+    uint32_t factor32 = mulFactor;
+    factor32 = factor32 * bandgap;
+    uint16_t osccal = (factor32 >> 8) + addFactor;
+    OSCCAL = osccal >> 8;
   }
 }
+

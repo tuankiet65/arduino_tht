@@ -1,28 +1,43 @@
 #include "thVLC.h"
 #include <digitalWriteFast.h>
-#include <thAVR.h>
 
-#define NUMOFSENSOR	8
+
+thVLCClass thVLC;
+
+#define NUMOFSENSOR	8		
 #define CHANNEL_0	2				
-#define USEC_PERTICK     1250
+
+#define USEC_PERTICK     1250    
+
+
 #define TIME_START_LOW     16
 #define TIME_START_HIGH    82
+
 #define TIME_BIT1_LOW      44    
-#define TIME_BIT1_HIGH     16
+#define TIME_BIT1_HIGH     16    
+
 #define TIME_BIT0_LOW      16     
-#define TIME_BIT0_HIGH     44
-#define GAP_TICKS          8
+#define TIME_BIT0_HIGH     44    
+
+
+  
+#define GAP_TICKS          8		 
 #define START_SIGNAL       6
 #define NUMOFBITS_RECV     8
-#define SKIP_START_TIME      5
-#define SENSOR_HISTORY_SIZE	 2
+
+#define SKIP_START_TIME      5  
+#define SENSOR_HISTORY_SIZE	 2	 
+
+
 #define STATE_IDLE     2
 #define CHECK_START    3
 #define STATE_MARK     4
 #define STATE_SPACE    5
+
+
+
 #define BLOCK_ID_EEPROM_ADDR  500   
-#define SENSOR_THRESHOLD  15 
-#define DEFAULT_SENSOR_VALUE  (32768) 
+
 
 const uint8_t _ctrl_R2   = A3;			
 const uint8_t _sensorPin = A2;			
@@ -50,12 +65,14 @@ CHANNEL_STRUCT _channels[NUMOFSENSOR];
 CHANNEL_STRUCT* _rxChannel;
 CHANNEL_STRUCT* _txChannel;
 
+#define SENSOR_THRESHOLD  15 
+#define DEFAULT_SENSOR_VALUE  (32768) 
+
 uint8_t  _sensorHistoryIdx; 
 uint32_t txLastTime;
 
-thVLC_ thVLC;
 
-void thVLC_::begin()
+void thVLCClass::begin()
 {	
   for (int8_t i = NUMOFSENSOR - 1; i >= 0 ; i--)
   {
@@ -63,56 +80,57 @@ void thVLC_::begin()
     channel->ctrlPin = CHANNEL_0 + i;    
     
     channel->rxState = STATE_IDLE;
-    for (int8_t idx = SENSOR_HISTORY_SIZE - 1; idx >= 0; idx--)
+    for (int8_t idx = 0; idx < SENSOR_HISTORY_SIZE; idx++)
     {
       channel->sensorHistory[idx] = DEFAULT_SENSOR_VALUE;
-      channel->txLedState = HIGH;  
     }
+    channel->txLedState = HIGH;  
   }
-  PORTD |= 0xfc;
+  PORTD |= 0xFC;
+  DDRD  |= 0xFC; 
   PORTB |= 0x03;
-  DDRD  |= 0xfc; 
   DDRB  |= 0x03; 
   
   
   
-  PORTC |= _BV(PORTC2);
-  DDRC  |= _BV(DDC2);
+  PORTC |= _BV(2);
+  DDRC  |= _BV(2);
   
   
   
-  PORTC &= ~_BV(PORTC3); 
-  DDRC |= _BV(DDC3);
+  PORTC &= ~_BV(3); 
+  DDRC  |=  _BV(3);
 
-  avrADCClockDivConfig(ADC_CLK_DIV_4);
-  avrTimer1ConfigNormal(AVR_TIMER1_TOP(USEC_PERTICK));
-  avrTimer1InteruptEnable();
-  avrPullUpDisable();
   _rxChannel = &_channels[0];
-  
   ADMUX = 0x42;    
+  avrPullUpDisable();
+
+  
+  avrADCClockDivConfig(ADC_CLK_DIV_8);
+  avrTimer1ConfigNormal(AVR_TIMER1_TOP(USEC_PERTICK));
+  avrTimer1OC1AInteruptEnable();
 }
 
 
-byte thVLC_::getID()
+byte thVLCClass::getID()
 {
-  return EEPROM.read(BLOCK_ID_EEPROM_ADDR);
+  return avrEepromRead(BLOCK_ID_EEPROM_ADDR);
 }
 
 
 
-char thVLC_::receiveReady(byte pin)   
+boolean thVLCClass::receiveReady(byte pin)   
 {
   byte channel = pin - CHANNEL_0;
   if (channel > (NUMOFSENSOR - 1))
   {
-    return 0;
+    return false;
   }
   CHANNEL_STRUCT* addr = &_channels[channel];
   return addr->rxReadyFlag;
 }
 
-byte thVLC_::receiveResult(byte pin)
+byte thVLCClass::receiveResult(byte pin)
 {
   byte channel = pin - CHANNEL_0;
   if (channel > (NUMOFSENSOR - 1))
@@ -128,10 +146,13 @@ byte thVLC_::receiveResult(byte pin)
 void rxReadMode() 
 {	
   
-  DDRC = ((DDRC | _BV(DDC3)) & (~_BV(DDC2)));  
   
+  DDRC &= (~_BV(2));
+  
+  
+  DDRC |= _BV(3);
   DDRD &= 0x03; 
-  DDRB &= 0xfc; 
+  DDRB &= 0xFC; 
   
   digitalWriteFast(_rxChannel->ctrlPin, HIGH);
   pinModeFast(_rxChannel->ctrlPin, OUTPUT);	 
@@ -141,14 +162,14 @@ void rxLedMode()
 { 		
   
   digitalWriteFast(_rxChannel->ctrlPin,_rxChannel->txLedState);
-  DDRD |= 0xfc; 
+  DDRD |= 0xFC; 
   DDRB |= 0x03; 
   
   
-  DDRC &= ~(_BV(DDC3));
+  DDRC &= ~(_BV(3));
   
   
-  DDRC |= _BV(DDC2);
+  DDRC |= _BV(2);
 }
 
 
@@ -159,15 +180,13 @@ uint16_t rxSensorRead()
   ADCSRA |= _BV(ADSC);          
   rxLedMode();
   
-  
-  uint16_t ADC_value = ADC;
-  return ADC_value;
+  while (ADCSRA & (_BV(ADSC)));  
+  return ADC;
 }
 
 
-int thVLC_::sensorRead(byte pin)
+int thVLCClass::sensorRead(byte pin)
 { 
-  uint16_t readValue;
   byte channel = pin - CHANNEL_0;
   if (channel >= NUMOFSENSOR + 1)  
   {   
@@ -177,25 +196,27 @@ int thVLC_::sensorRead(byte pin)
   if (pin != 10)
   {
     CHANNEL_STRUCT* _readChannel = &_channels[channel]; 
-    readValue = _readChannel->sensorHistory[_sensorHistoryIdx];
+    return _readChannel->sensorHistory[_sensorHistoryIdx];
   }
   else
   {
-    avrTimer1InteruptDisable();
+    avrTimer1OC1AInteruptDisable();
     
-    DDRC = ((DDRC | _BV(DDC3)) & (~_BV(DDC2)));      
+    
+    DDRC |= _BV(3);
+    DDRC &= ~_BV(2);      
     digitalWriteFast(10, HIGH);  
     DDRD &= 0x03;                
-    DDRB = (DDRB & 0xfc) | 0x04; 
+    DDRB = (DDRB & 0xFC) | _BV(2); 
     
     ADCSRA |= _BV(ADSC);
     while (ADCSRA & (_BV(ADSC)));  
-    readValue = ADC;
     
-    DDRB &= 0xfb;     
-    avrTimer1InteruptEnable();  
+    DDRB &= ~_BV(2);     
+    avrTimer1OC1AInteruptEnable();
+      
+    return ADC;
   }
-  return readValue;
 }
 
 
@@ -203,17 +224,14 @@ int thVLC_::sensorRead(byte pin)
 void rxDecodeSensor() 
 {  
   
-  uint16_t maxValue;
-  uint16_t minValue;
-  if (_rxChannel->sensorHistory[0] > _rxChannel->sensorHistory[1])
+  uint16_t maxValue = _rxChannel->sensorHistory[0];
+  uint16_t minValue = _rxChannel->sensorHistory[1];
+  
+  if (minValue > maxValue)
   {
-     maxValue = _rxChannel->sensorHistory[0];
-     minValue = _rxChannel->sensorHistory[1];
-  }
-  else
-  {
-    maxValue = _rxChannel->sensorHistory[1];
-    minValue = _rxChannel->sensorHistory[0];
+     uint16_t temp = maxValue;
+     maxValue = minValue;
+     minValue = temp;
   }
   
   uint16_t buf = rxSensorRead();
@@ -327,7 +345,7 @@ void txLedWrite(byte value)
   digitalWriteFast(_txChannel->ctrlPin, valueBuff);
 }
 
-void thVLC_::ledWrite(byte pin, byte value)	
+void thVLCClass::ledWrite(byte pin, byte value)	
 {       
   byte channel = pin - CHANNEL_0;
   if (channel > (NUMOFSENSOR - 1))
@@ -369,7 +387,7 @@ void txSendStop()
 
 uint8_t txMultiChannels, txLastChannels;
 
-void thVLC_::txSetByte(byte pin, byte value)
+void thVLCClass::txSetByte(byte pin, byte value)
 {
   byte channel = pin - CHANNEL_0;
   if (channel > (NUMOFSENSOR - 1))
@@ -416,7 +434,7 @@ void txSendStartMultiChannels()
 
 void txSendStopMultiChannels()
 {
-  for(int8_t i = 0; i < 8; i++)
+  for (int8_t i = 0; i < 8; i++)
   {
     if (txMultiChannels & (_BV(i)))
     {
@@ -428,7 +446,7 @@ void txSendStopMultiChannels()
   }
 }
 
-void thVLC_::txSend()
+void thVLCClass::txSend()
 {
   uint32_t time;
   txSendStartMultiChannels(); 
@@ -492,10 +510,8 @@ void thVLC_::txSend()
 
 
 
-#if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
-#endif
 
-void thVLC_::sendByte(byte pin, byte value)
+void thVLCClass::sendByte(byte pin, byte value)
 {
   byte channel = pin - CHANNEL_0;
   if (channel > (NUMOFSENSOR - 1))
@@ -511,9 +527,15 @@ void thVLC_::sendByte(byte pin, byte value)
   
   for (int8_t i = 7; i >= 0 ; i--)
   {
-    if (value & 0x80) txSendBit1();
-    else             txSendBit0();
-      value = value << 1;
+    if (value & 0x80)
+    {
+      txSendBit1();
+    }
+    else
+    {
+      txSendBit0();
+    }
+    value = value << 1;
   }
   txSendStop();
   _txChannel->rxReadyFlag = 0;	
@@ -537,12 +559,13 @@ ISR(TIMER1_COMPA_vect)
     _sensorHistoryIdx = 1 - _sensorHistoryIdx;
    
     #if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
-      static uint8_t  DVcc_Idx = 16;
+      static int8_t  DVcc_Idx = 16;
       
-      if (--DVcc_Idx == 0)
+      if (--DVcc_Idx <= 0)
       {
         DVcc_Idx = 16;
         avrConfigFreq();
+        ADMUX = 0x42;     
       }
     #endif
   }  

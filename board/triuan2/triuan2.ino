@@ -1,6 +1,6 @@
 #include <EEPROM.h>
 #include <digitalWriteFast.h>
-#include <common.h>
+#include <messages.h>
 #include <thAVR.h>
 #include <thVLC.h>
 
