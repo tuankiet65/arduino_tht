@@ -1,5 +1,3 @@
-
-
 #ifndef THLEDMATRIX_H
 #define THLEDMATRIX_H
 
@@ -13,11 +11,8 @@
 
 class thLedMatrixClass {
 public:
-
     static void begin();
-
     static void clear();
-
     static void setPixel(byte x, byte y, byte color);
     static void setColumn(byte x, byte redBitmap, byte greenBitmap);
     static void setBitmap(byte **bitmap);

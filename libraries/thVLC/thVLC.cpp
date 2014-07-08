@@ -1,53 +1,35 @@
 #include "thVLC.h"
 #include <digitalWriteFast.h>
 
-
 thVLCClass thVLC;
 
 #define NUMOFSENSOR	8
 #define CHANNEL_0	2
-
 #define USEC_PERTICK     1250
-
-
 #define TIME_START_LOW     16
 #define TIME_START_HIGH    82
-
 #define TIME_BIT1_LOW      44
 #define TIME_BIT1_HIGH     16
-
 #define TIME_BIT0_LOW      16
 #define TIME_BIT0_HIGH     44
-
-
-
 #define GAP_TICKS          8
 #define START_SIGNAL       6
 #define NUMOFBITS_RECV     8
-
 #define SKIP_START_TIME      5
 #define SENSOR_HISTORY_SIZE	 2
-
-
 #define STATE_IDLE     2
 #define CHECK_START    3
 #define STATE_MARK     4
 #define STATE_SPACE    5
-
-
-
 #define BLOCK_ID_EEPROM_ADDR  500
-
 
 const uint8_t _ctrl_R2   = A3;
 const uint8_t _sensorPin = A2;
 
 typedef struct {
     uint8_t  ctrlPin;
-
     uint8_t  txLedState;
     uint8_t  txValueBuffer;
-
     uint8_t  rxTimeStateLow;
     uint8_t  rxTimer;
     uint8_t  rxState;
@@ -55,7 +37,6 @@ typedef struct {
     uint8_t  rxDecodeResult;
     uint8_t  rxResult;
     uint8_t  rxReadyFlag;
-
     uint8_t  sensorState;
     uint16_t sensorHistory[SENSOR_HISTORY_SIZE];
 } CHANNEL_STRUCT;
@@ -69,7 +50,6 @@ CHANNEL_STRUCT *_txChannel;
 
 uint8_t  _sensorHistoryIdx;
 uint32_t txLastTime;
-
 
 void thVLCClass::begin() {
     for(int8_t i = NUMOFSENSOR - 1; i >= 0 ; i--) {
@@ -101,8 +81,6 @@ byte thVLCClass::getID() {
     return avrEepromRead(BLOCK_ID_EEPROM_ADDR);
 }
 
-
-
 boolean thVLCClass::receiveReady(byte pin) {
     byte channel = pin - CHANNEL_0;
     if(channel > (NUMOFSENSOR - 1))
@@ -119,7 +97,6 @@ byte thVLCClass::receiveResult(byte pin) {
     addr->rxReadyFlag = 0;
     return (addr->rxResult);
 }
-
 
 void rxReadMode() {
     DDRC &= (~_BV(2));
@@ -138,8 +115,6 @@ void rxLedMode() {
     DDRC |= _BV(2);
 }
 
-
-
 uint16_t rxSensorRead() {
     rxReadMode();
     ADCSRA |= _BV(ADSC);
@@ -147,7 +122,6 @@ uint16_t rxSensorRead() {
     while(ADCSRA & (_BV(ADSC)));
     return ADC;
 }
-
 
 int thVLCClass::sensorRead(byte pin) {
     byte channel = pin - CHANNEL_0;
@@ -171,8 +145,6 @@ int thVLCClass::sensorRead(byte pin) {
     }
 }
 
-
-
 void rxDecodeSensor() {
     uint16_t maxValue = _rxChannel->sensorHistory[0];
     uint16_t minValue = _rxChannel->sensorHistory[1];
@@ -189,8 +161,6 @@ void rxDecodeSensor() {
         _rxChannel->sensorState = 0;
 }
 
-
-
 void rxCheckStartAndDecode() {
     if(_rxChannel->rxTimer < START_SIGNAL) {
         _rxChannel->rxDecodeResult = _rxChannel->rxDecodeResult << 1;
@@ -203,15 +173,12 @@ void rxCheckStartAndDecode() {
     }
 }
 
-
-
 void rxCheckStartSignal() {
     if(_rxChannel->rxTimer < START_SIGNAL)
         _rxChannel->rxState = STATE_IDLE;
     else
         _rxChannel->rxState = STATE_SPACE;
 }
-
 
 void rxRecordPulse() {
     _rxChannel->rxTimer++;
@@ -254,9 +221,6 @@ void rxRecordPulse() {
     }
 }
 
-
-
-
 void txLedWrite(byte value) {
     byte valueBuff = value ^ 0x01;
     _txChannel->txLedState = valueBuff;
@@ -293,8 +257,6 @@ void txSendBit0() {
 void txSendStop() {
     txLedWrite(LOW);
 }
-
-
 
 uint8_t txMultiChannels, txLastChannels;
 
@@ -386,9 +348,6 @@ void thVLCClass::txSend() {
     txMultiChannels = 0;
     txLastTime = millis();
 }
-
-
-
 
 void thVLCClass::sendByte(byte pin, byte value) {
     byte channel = pin - CHANNEL_0;

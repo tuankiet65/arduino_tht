@@ -1,11 +1,8 @@
-
-
 #include "thAVR.h"
 
 #define  MUL_FACTOR_EEPROM_ADDR  510
 #define  ADD_FACTOR_EEPROM_ADDR  508
 #define  CHECKSUM_EEPROM_ADDR    502
-
 
 void avrTimer1ConfigNormal(word TopValue) {
     TCCR1A = 0;
@@ -16,13 +13,9 @@ void avrTimer1ConfigNormal(word TopValue) {
     TCNT1 = 0;
 }
 
-
-
 void avrADCClockDivConfig(byte clkDiv) {
     ADCSRA = (ADCSRA & (~0x07)) | (clkDiv & 0x07);
 }
-
-
 
 word avrGetBandgap() {
     ADMUX = (0x01 << REFS0) | (0 << ADLAR) | (0x0E << MUX0);
@@ -34,12 +27,9 @@ word avrGetBandgap() {
     return ADC;
 }
 
-
-
 word avrEepromReadWord(word addr) {
     return word(avrEepromRead(addr+1), avrEepromRead(addr));
 }
-
 
 void avrConfigFreq() {
     uint16_t addFactor    = avrEepromReadWord(ADD_FACTOR_EEPROM_ADDR);
@@ -53,4 +43,3 @@ void avrConfigFreq() {
         OSCCAL = osccal >> 8;
     }
 }
-
