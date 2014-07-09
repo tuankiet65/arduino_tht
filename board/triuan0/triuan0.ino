@@ -5,18 +5,20 @@
 #include <thAVR.h>
 #include <thVLC.h>
 #include <thLedMatrix.h>
+#include <thIR.h>
 
 int i=2;
 
-void setup() {
+void setup(){
     Serial.begin(BAUD);
     thVLC.begin();
     thLedMatrix.begin();
-    Serial.println("Started");
     thBuzzer.begin();
+    thIR.begin();
+    Serial.println("Started");
 }
 
-void loop() {
+void loop(){
     Serial.print(F("Sending handshake message on port "));
     Serial.println(i);
     thVLC.sendByte(i, HANDSHAKE_MESSAGE);
@@ -42,5 +44,5 @@ void loop() {
         }
     }
     i++;
-    if(i==10) i=2;
+    if (i==10) i=2;
 }

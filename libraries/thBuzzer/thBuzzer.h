@@ -1,14 +1,16 @@
 #ifndef THBUZZER_H
-#define THBUZZER_H
 
-#include <Arduino.h>
+	#define THBUZZER_H
 
-class _thBuzzer {
-public:
-    static void begin();
-    static void sound(int ms);
-};
+	#include <digitalWriteFast.h>
+	#include <Arduino.h>
 
-extern _thBuzzer thBuzzer;
+	class _thBuzzer {
+	public:
+	    static void begin();
+	    static void sound(int ms);
+	};
+
+	extern _thBuzzer thBuzzer;
 
 #endif

@@ -1,7 +1,6 @@
 #include "thBuzzer.h"
-#include <thAVR.h>
 #include <digitalWriteFast.h>
-#include <avr/pgmspace.h>
+#include <Arduino.h>
 
 _thBuzzer thBuzzer;
 
