@@ -14,7 +14,7 @@ void startSplash(){
     }
 }
 
-void setNumber(byte n){
+/*void setNumber(byte n){
     byte a=n/10, b=n%10;
     switch (b){
         case 0: thLedMatrix.setBitmap(ZERO_RIGHT); break;
@@ -41,4 +41,4 @@ void setNumber(byte n){
         case 8: thLedMatrix.setBitmap(EIGHT_LEFT); break;
         case 9: thLedMatrix.setBitmap(NINE_LEFT); break;
     }
-}
+}*/

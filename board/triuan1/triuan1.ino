@@ -1,5 +1,5 @@
 #include <digitalWriteFast.h>
-#include <messageCoding.h>
+#include <message.h>
 #include <thAVR.h>
 #include <thVLC.h>
 
@@ -39,7 +39,7 @@ void loop() {
         Serial.println(i);
         Serial.println(F("Now send port ID"));
         thVLC.sendByte(i, PORT_ID[i]);
-        unsigned char a[50]={0}, b=0;
+        unsigned char a[50]={0}, b=0, c=0, d=0;
         int i2=-1;
         while(!thVLC.receiveReady(i))
             delay(10);
@@ -54,25 +54,26 @@ void loop() {
                 Serial.println(i2);
                 Serial.println(a[i2]);
             }
+            message.decode(a[0], &c, &d);
             Serial.println(F("Done receiving data, now check"));
-            thVLC.sendByte(a[0], HANDSHAKE_MESSAGE);
-            delay(800);
-            if (thVLC.receiveReady(a[0])&&thVLC.receiveResult(a[0])==a[1]){
+            thVLC.sendByte(c, HANDSHAKE_MESSAGE);
+            delay(1000);
+            if (thVLC.receiveReady(c)&&thVLC.receiveResult(c)==d){
                 Serial.println("Found board");
-                if (i2-2==0) {
-                    thVLC.sendByte(a[0], IGNORE);
+                if (i2-1==0) {
+                    thVLC.sendByte(c, IGNORE);
                     thVLC.sendByte(i, SUCCESS);
                 } else {
                     unsigned char i3=0;
                     Serial.println(F("Sending bytes"));
-                    thVLC.sendByte(a[0], MESSAGE_BEGIN);
+                    thVLC.sendByte(c, MESSAGE_BEGIN);
                     for (i3=2; a[i3]!=MESSAGE_END; i3++) {
                         Serial.println(a[i3]);
-                        thVLC.sendByte(a[0], a[i3]);
+                        thVLC.sendByte(c, a[i3]);
                     }
-                    thVLC.sendByte(a[0], MESSAGE_END);
+                    thVLC.sendByte(c, MESSAGE_END);
                     while (!thVLC.receiveReady(a[0])) delay(10);
-                    unsigned char x=thVLC.receiveResult(a[0]);
+                    unsigned char x=thVLC.receiveResult(c);
                     Serial.println(x);
                     thVLC.sendByte(i, x);
                 }
