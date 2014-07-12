@@ -45,7 +45,7 @@ void thLedMatrixClass::setColumn(byte x, byte redBitmap, byte greenBitmap) {
 }
 
 
-void thLedMatrixClass::setBitmap(byte **bitmap) {
+void thLedMatrixClass::setBitmap(const unsigned char PROGMEM *bitmap) {
     for(byte x = 0; x < 8; x++) {
         byte redBitmap = pgm_read_byte_near(bitmap++);
         byte grnBitmap = pgm_read_byte_near(bitmap++);

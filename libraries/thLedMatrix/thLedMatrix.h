@@ -15,7 +15,7 @@ public:
     static void clear();
     static void setPixel(byte x, byte y, byte color);
     static void setColumn(byte x, byte redBitmap, byte greenBitmap);
-    static void setBitmap(byte **bitmap);
+    static void setBitmap(const unsigned char PROGMEM *bitmap);
 };
 
 extern thLedMatrixClass thLedMatrix;

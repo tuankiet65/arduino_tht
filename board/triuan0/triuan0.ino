@@ -1,11 +1,10 @@
 #include <EEPROM.h>
 #include <digitalWriteFast.h>
-#include <messages.h>
+#include <messageCoding.h>
 #include <thBuzzer.h>
 #include <thAVR.h>
 #include <thVLC.h>
 #include <thLedMatrix.h>
-#include <thIR.h>
 
 int i=2;
 
@@ -14,12 +13,17 @@ void setup(){
     thVLC.begin();
     thLedMatrix.begin();
     thBuzzer.begin();
-    thIR.begin();
     Serial.println("Started");
+    delay(1000);
+    startSplash();
+    for (i=0; i<=99; i++){
+      setNumber(i);
+      delay(1000);
+    }
 }
 
 void loop(){
-    Serial.print(F("Sending handshake message on port "));
+    /*Serial.print(F("Sending handshake message on port "));
     Serial.println(i);
     thVLC.sendByte(i, HANDSHAKE_MESSAGE);
     delay(1000);
@@ -32,8 +36,13 @@ void loop(){
             Serial.print(F(" port "));
             Serial.println(b);
             Serial.println(F("Sending data"));
+            thVLC.sendByte(i, MESSAGE_BEGIN);
             thVLC.sendByte(i, 6);
             thVLC.sendByte(i, 23);
+            thVLC.sendByte(i, 5);
+            thVLC.sendByte(i, 24);
+            thVLC.sendByte(i, 2);
+            thVLC.sendByte(i, 43);
             thVLC.sendByte(i, MESSAGE_END);
             while(!thVLC.receiveReady(i))
                 delay(10);
@@ -44,5 +53,5 @@ void loop(){
         }
     }
     i++;
-    if (i==10) i=2;
+    if (i==10) i=2;*/
 }
