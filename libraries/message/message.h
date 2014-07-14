@@ -11,7 +11,7 @@
 class _message {
 public:
 	static unsigned char encode(unsigned char a, unsigned char b);
-	static void decode(unsigned char c, unsigned int &a, unsigned int &b);
+	static void decode(unsigned char c, unsigned int *a, unsigned int *b);
 };
 
 extern _message message;

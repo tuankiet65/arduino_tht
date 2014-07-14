@@ -1,6 +1,8 @@
 #ifndef THBUZZER_H
 
 	#define THBUZZER_H
+	#define BUTTON_ACCEPTED 100
+	#define BUTTON_INVALID 200
 
 	#include <digitalWriteFast.h>
 	#include <Arduino.h>

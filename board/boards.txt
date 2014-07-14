@@ -1,4 +1,4 @@
-uno.name=Main board (Arduino Uno)
+uno.name=Tri Uan 0(Arduino Uno)
 uno.upload.protocol=arduino
 uno.upload.maximum_size=32256
 uno.upload.speed=115200
@@ -16,7 +16,7 @@ uno.build.variant=standard
 
 ###################################################
 
-atmega8min.name=Sub1/2/3/4 board (ATmega8min)
+atmega8min.name=Tri Uan 1/2/3/4 (ATmega8min)
 atmega8min.upload.protocol=arduino
 atmega8min.upload.maximum_size=7680
 atmega8min.upload.speed=38400

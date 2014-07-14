@@ -6,7 +6,7 @@
 	#define THIR_H
 
 	#define UNDEF 255
-	#define ZERO 19
+	#define ZERO 0
 	#define ONE_HUNDRED_PLUS 100
 	#define TWO_HUNDRED_PLUS 200
 	#define ONE 1
@@ -18,7 +18,7 @@
 	#define SEVEN 7
 	#define EIGHT 8
 	#define NINE 9
-	#define CHANNEL_DOWN 10
+	#define CHANNEL_DOWN 19
 	#define CHANNEL 11
 	#define CHANNEL_UP 12
 	#define PREV 13
@@ -27,14 +27,13 @@
 	#define VOL_DOWN 16
 	#define VOL_UP 17
 	#define EQ 18
-	#define REPEAT_1 0xFFFFFFFF
 
 	class _thIR{
 		public:
 			static void begin();
-			static byte receive(byte *result);
+			static unsigned char receive(unsigned char *result);
 		private:
-			static byte decode(unsigned long value);
+			static unsigned char decode(unsigned long value);
 	};
 
 	extern _thIR thIR;

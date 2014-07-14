@@ -1,5 +1,3 @@
-
-
 #ifndef	THVLC_H
 #define THVLC_H
 

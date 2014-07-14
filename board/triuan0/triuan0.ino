@@ -5,46 +5,99 @@
 #include <thAVR.h>
 #include <thVLC.h>
 #include <thLedMatrix.h>
+#include <thIR.h>
 
-int i=2;
+unsigned char i=2, currScore=0, currNum=0, currScreen=0;
 
 void setup(){
+    currScore=scoreRead();
     Serial.begin(BAUD);
     thVLC.begin();
     thLedMatrix.begin();
     thBuzzer.begin();
+    thIR.begin();
     Serial.println("Started");
-    delay(1000);
+    thBuzzer.sound(1000);
     startSplash();
+    numUpdate(0, 0);
 }
 
 void loop(){
-    Serial.print(F("Sending handshake message on port "));
-    Serial.println(i);
-    thVLC.sendByte(i, HANDSHAKE_MESSAGE);
-    delay(1000);
-    if(thVLC.receiveReady(i)) {
-        int a=thVLC.receiveResult(i);
-        int b=a%10;
-        if(a==13) {
-            Serial.print(F("Successfully received message from board "));
-            Serial.print(a/10);
-            Serial.print(F(" port "));
-            Serial.println(b);
-            Serial.println(F("Sending data"));
-            thVLC.sendByte(i, MESSAGE_BEGIN);
-            thVLC.sendByte(i, message.encode(6, 23));
-            thVLC.sendByte(i, message.encode(5, 24));
-            thVLC.sendByte(i, message.encode(2, 43));
-            thVLC.sendByte(i, MESSAGE_END);
-            while(!thVLC.receiveReady(i))
-                delay(10);
-            Serial.println(thVLC.receiveResult(i));
-            if(thVLC.receiveResult(i)==FAIL) {
-            } else if(thVLC.receiveResult(i)==SUCCESS)
-                thBuzzer.sound(1000);
+   unsigned char irSignal=255;
+   if (thIR.receive(&irSignal)){
+        switch (irSignal){
+            case ZERO:
+            case ONE:
+            case TWO:
+            case THREE:
+            case FOUR:
+            case FIVE:
+            case SIX:
+            case SEVEN:
+            case EIGHT:
+            case NINE:
+                if (currScreen){
+                    thBuzzer.sound(BUTTON_INVALID);
+                } else {
+                    currNum=(currNum%10)*10+irSignal;
+                    numUpdate(currNum, currScreen);
+                    thBuzzer.sound(BUTTON_ACCEPTED);
+                }
+                break;
+            case ONE_HUNDRED_PLUS:
+            case TWO_HUNDRED_PLUS:
+            case NEXT:
+            case VOL_UP:
+                if (currScreen){
+                    thBuzzer.sound(BUTTON_INVALID);
+                } else {
+                    if (irSignal==ONE_HUNDRED_PLUS) irSignal=10;
+                    if (irSignal==TWO_HUNDRED_PLUS) irSignal=20;
+                    if (irSignal==NEXT||irSignal==VOL_UP) irSignal=1;
+                    currNum+=irSignal;
+                    if (currNum>99) currNum-=100;
+                    numUpdate(currNum, currScreen);
+                    thBuzzer.sound(BUTTON_ACCEPTED);
+                }
+                break;
+            case VOL_DOWN:
+            case PREV:
+                if (currScreen){
+                    thBuzzer.sound(BUTTON_INVALID);
+                } else {
+                    if (currNum==0) currNum=99; else currNum--;
+                    numUpdate(currNum, currScreen);
+                    thBuzzer.sound(BUTTON_ACCEPTED);
+                }
+                break;
+            case CHANNEL:
+            case CHANNEL_UP:
+            case CHANNEL_DOWN:
+                if (currScreen) {
+                    currScreen=0;
+                    numUpdate(currNum, currScreen);
+                }
+                else {
+                    currScreen=1;
+                    numUpdate(currScore, currScreen);
+                }
+                thBuzzer.sound(BUTTON_ACCEPTED);
+                break;
+            case EQ:
+                if (currScreen){
+                    thBuzzer.sound(BUTTON_INVALID);
+                } else {
+                    currNum-=(currNum%10);
+                    if (currNum%10==0) currNum/=10;
+                    numUpdate(currNum, currScreen);
+                    thBuzzer.sound(BUTTON_ACCEPTED);
+                }
+                break;
+            case PLAY_PAUSE:
+                
+                break;
+            default:
+                thBuzzer.sound(BUTTON_INVALID);
         }
     }
-    i++;
-    if (i==10) i=2;
 }

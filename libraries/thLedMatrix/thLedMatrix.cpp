@@ -95,10 +95,6 @@ void LedMatrixScan() {
     SPDR = byte1;
 }
 
-
-
-
-
 SIGNAL(TIMER1_COMPB_vect) {
     LedMatrixScan();
 }

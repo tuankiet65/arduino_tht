@@ -8,7 +8,7 @@ unsigned char i=2, PORT_ID[10]={0}, maxPort=0;
 void portIDGen(){
     PORT_ID[0]=0;
     PORT_ID[1]=0;
-    int id=thVLC.getID();
+    unsigned char id=thVLC.getID();
     switch (id) {
         case 1:
             maxPort=7;
@@ -39,8 +39,7 @@ void loop() {
         Serial.println(i);
         Serial.println(F("Now send port ID"));
         thVLC.sendByte(i, PORT_ID[i]);
-        unsigned char a[50]={0}, b=0, c=0, d=0;
-        int i2=-1;
+        unsigned char b=0, c=0, d=0, a[8]={0}, i2=0;
         while(!thVLC.receiveReady(i))
             delay(10);
         b=thVLC.receiveResult(i);

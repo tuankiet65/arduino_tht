@@ -15,7 +15,7 @@ void _thIR::begin(){
 	IR.enableIRIn();
 }
 
-byte _thIR::decode(unsigned long value){
+unsigned char _thIR::decode(unsigned long value){
 	switch (value) {
 		case 0xE318261B:
 		case 0xFFA25D:
@@ -89,11 +89,11 @@ byte _thIR::decode(unsigned long value){
 	}
 }
 
-byte _thIR::receive(byte &result){
+unsigned char _thIR::receive(unsigned char *result){
 	decode_results tmpRes;
 	if (IR.decode(&tmpRes)){
 		IR.resume();
-		result=thIR.decode(tmpRes.value);
+		*result=thIR.decode(tmpRes.value);
 		return 1;
 	} else return 0;
 }
