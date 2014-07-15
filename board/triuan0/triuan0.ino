@@ -39,9 +39,11 @@ void loop(){
                 if (currScreen){
                     thBuzzer.sound(BUTTON_INVALID);
                 } else {
-                    currNum=(currNum%10)*10+irSignal;
-                    numUpdate(currNum, currScreen);
-                    thBuzzer.sound(BUTTON_ACCEPTED);
+                    if (currNum<10) {
+                        currNum=currNum*10+irSignal;
+                        numUpdate(currNum, currScreen);
+                        thBuzzer.sound(BUTTON_ACCEPTED);
+                    } else thBuzzer.sound(BUTTON_INVALID);
                 }
                 break;
             case ONE_HUNDRED_PLUS:
@@ -87,8 +89,8 @@ void loop(){
                 if (currScreen){
                     thBuzzer.sound(BUTTON_INVALID);
                 } else {
-                    currNum-=(currNum%10);
-                    if (currNum%10==0) currNum/=10;
+                    if (currNum<10||currNum%10==0) currNum=0;
+                    else currNum-=(currNum%10);
                     numUpdate(currNum, currScreen);
                     thBuzzer.sound(BUTTON_ACCEPTED);
                 }

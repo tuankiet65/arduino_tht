@@ -10,7 +10,7 @@ unsigned char _message::encode(unsigned char a, unsigned char b){
 	return pgm_read_byte(&encodeTable[b*10+a]);
 };
 
-void _message::decode(unsigned char c, unsigned int *a, unsigned int *b){
+void _message::decode(unsigned char c, unsigned char *a, unsigned char *b){
 	unsigned int d=pgm_read_word(&decodeTable[c]);
   	*a=d%10;
   	*b=d/10;

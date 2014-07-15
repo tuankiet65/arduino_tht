@@ -1,5 +1,5 @@
 #include <EEPROM.h>
-#define SCORE_ADDRESS 1
+#define SCORE_ADDRESS 100
 
 unsigned char scoreRead(){
 	return EEPROM.read(SCORE_ADDRESS);

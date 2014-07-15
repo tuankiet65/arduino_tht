@@ -1,3 +1,5 @@
 #include <avr/pgmspace.h>
 
-typedef unsigned char shape[10][8];
+const unsigned char PROGMEM shape[][8][10]={
+    {S
+}S

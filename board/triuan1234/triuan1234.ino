@@ -39,7 +39,8 @@ void loop() {
         Serial.println(i);
         Serial.println(F("Now send port ID"));
         thVLC.sendByte(i, PORT_ID[i]);
-        unsigned char b=0, c=0, d=0, a[8]={0}, i2=0;
+        unsigned char b=0, c=0, d=0, a[8]={0};
+        char i2=-1;
         while(!thVLC.receiveReady(i))
             delay(10);
         b=thVLC.receiveResult(i);
@@ -54,6 +55,9 @@ void loop() {
                 Serial.println(a[i2]);
             }
             message.decode(a[0], &c, &d);
+            Serial.print(c);
+            Serial.print(" ");
+            Serial.println(d);
             Serial.println(F("Done receiving data, now check"));
             thVLC.sendByte(c, HANDSHAKE_MESSAGE);
             delay(1000);
@@ -66,12 +70,12 @@ void loop() {
                     unsigned char i3=0;
                     Serial.println(F("Sending bytes"));
                     thVLC.sendByte(c, MESSAGE_BEGIN);
-                    for (i3=2; a[i3]!=MESSAGE_END; i3++) {
+                    for (i3=1; a[i3]!=MESSAGE_END; i3++) {
                         Serial.println(a[i3]);
                         thVLC.sendByte(c, a[i3]);
                     }
                     thVLC.sendByte(c, MESSAGE_END);
-                    while (!thVLC.receiveReady(a[0])) delay(10);
+                    while (!thVLC.receiveReady(c)) delay(10);
                     unsigned char x=thVLC.receiveResult(c);
                     Serial.println(x);
                     thVLC.sendByte(i, x);
