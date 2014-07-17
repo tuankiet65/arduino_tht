@@ -30,41 +30,41 @@
 
 // Arduino Mega
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-  //#define IR_USE_TIMER1   // tx = pin 11
-  #define IR_USE_TIMER2     // tx = pin 9
-  //#define IR_USE_TIMER3   // tx = pin 5
-  //#define IR_USE_TIMER4   // tx = pin 6
-  //#define IR_USE_TIMER5   // tx = pin 46
+//#define IR_USE_TIMER1   // tx = pin 11
+#define IR_USE_TIMER2     // tx = pin 9
+//#define IR_USE_TIMER3   // tx = pin 5
+//#define IR_USE_TIMER4   // tx = pin 6
+//#define IR_USE_TIMER5   // tx = pin 46
 
 // Teensy 1.0
 #elif defined(__AVR_AT90USB162__)
-  #define IR_USE_TIMER1     // tx = pin 17
+#define IR_USE_TIMER1     // tx = pin 17
 
 // Teensy 2.0
 #elif defined(__AVR_ATmega32U4__)
-  //#define IR_USE_TIMER1   // tx = pin 14
-  //#define IR_USE_TIMER3   // tx = pin 9
-  #define IR_USE_TIMER4_HS  // tx = pin 10
+//#define IR_USE_TIMER1   // tx = pin 14
+//#define IR_USE_TIMER3   // tx = pin 9
+#define IR_USE_TIMER4_HS  // tx = pin 10
 
 // Teensy++ 1.0 & 2.0
 #elif defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB1286__)
-  //#define IR_USE_TIMER1   // tx = pin 25
-  #define IR_USE_TIMER2     // tx = pin 1
-  //#define IR_USE_TIMER3   // tx = pin 16
+//#define IR_USE_TIMER1   // tx = pin 25
+#define IR_USE_TIMER2     // tx = pin 1
+//#define IR_USE_TIMER3   // tx = pin 16
 
 // Sanguino
 #elif defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644__)
-  //#define IR_USE_TIMER1   // tx = pin 13
-  #define IR_USE_TIMER2     // tx = pin 14
+//#define IR_USE_TIMER1   // tx = pin 13
+#define IR_USE_TIMER2     // tx = pin 14
 
 // Atmega8
 #elif defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
-  #define IR_USE_TIMER1   // tx = pin 9
+#define IR_USE_TIMER1   // tx = pin 9
 
 // Arduino Duemilanove, Diecimila, LilyPad, Mini, Fio, etc
 #else
-  //#define IR_USE_TIMER1   // tx = pin 9
-  #define IR_USE_TIMER2     // tx = pin 3
+//#define IR_USE_TIMER1   // tx = pin 9
+#define IR_USE_TIMER2     // tx = pin 3
 #endif
 
 
@@ -113,7 +113,7 @@
 #define SANYO_RPT_LENGTH 45000
 
 // Mitsubishi RM 75501
-// 14200 7 41 7 42 7 42 7 17 7 17 7 18 7 41 7 18 7 17 7 17 7 18 7 41 8 17 7 17 7 18 7 17 7 
+// 14200 7 41 7 42 7 42 7 17 7 17 7 18 7 41 7 18 7 17 7 17 7 18 7 41 8 17 7 17 7 18 7 17 7
 
 // #define MITSUBISHI_HDR_MARK	250  // seen range 3500
 #define MITSUBISHI_HDR_SPACE	350 //  7*50+100
@@ -171,8 +171,8 @@
 #define DISH_BITS 16
 
 #define TOLERANCE 25  // percent tolerance in measurements
-#define LTOL (1.0 - TOLERANCE/100.) 
-#define UTOL (1.0 + TOLERANCE/100.) 
+#define LTOL (1.0 - TOLERANCE/100.)
+#define UTOL (1.0 + TOLERANCE/100.)
 
 #define _GAP 5000 // Minimum map between transmissions
 #define GAP_TICKS (_GAP/USECPERTICK)
@@ -188,13 +188,13 @@
 
 // information for the interrupt handler
 typedef struct {
-  uint8_t recvpin;           // pin for IR data from detector
-  uint8_t rcvstate;          // state machine
-  uint8_t blinkflag;         // TRUE to enable blinking of pin 13 on IR processing
-  unsigned int timer;     // state timer, counts 50uS ticks.
-  unsigned int rawbuf[RAWBUF]; // raw data
-  uint8_t rawlen;         // counter of entries in rawbuf
-} 
+    uint8_t recvpin;           // pin for IR data from detector
+    uint8_t rcvstate;          // state machine
+    uint8_t blinkflag;         // TRUE to enable blinking of pin 13 on IR processing
+    unsigned int timer;     // state timer, counts 50uS ticks.
+    unsigned int rawbuf[RAWBUF]; // raw data
+    uint8_t rawlen;         // counter of entries in rawbuf
+}
 irparams_t;
 
 // Defined in IRremote.cpp
@@ -267,11 +267,11 @@ extern volatile irparams_t irparams;
 #define TIMER_ENABLE_PWM     (TCCR1A |= _BV(COM1A1))
 #define TIMER_DISABLE_PWM    (TCCR1A &= ~(_BV(COM1A1)))
 #if defined(__AVR_ATmega8P__) || defined(__AVR_ATmega8__)
-  #define TIMER_ENABLE_INTR    (TIMSK = _BV(OCIE1A))
-  #define TIMER_DISABLE_INTR   (TIMSK = 0)
+#define TIMER_ENABLE_INTR    (TIMSK = _BV(OCIE1A))
+#define TIMER_DISABLE_INTR   (TIMSK = 0)
 #else
-  #define TIMER_ENABLE_INTR    (TIMSK1 = _BV(OCIE1A))
-  #define TIMER_DISABLE_INTR   (TIMSK1 = 0)
+#define TIMER_ENABLE_INTR    (TIMSK1 = _BV(OCIE1A))
+#define TIMER_DISABLE_INTR   (TIMSK1 = 0)
 #endif
 #define TIMER_INTR_NAME      TIMER1_COMPA_vect
 #define TIMER_CONFIG_KHZ(val) ({ \

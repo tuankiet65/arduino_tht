@@ -7,9 +7,9 @@
 #include <thLedMatrix.h>
 #include <thIR.h>
 
-unsigned char i=2, currScore=0, currNum=0, currScreen=0;
+unsigned char currScore=0, currNum=0, currScreen=0;  
 
-void setup(){
+void setup() {
     currScore=scoreRead();
     Serial.begin(BAUD);
     thVLC.begin();
@@ -22,84 +22,106 @@ void setup(){
     numUpdate(0, 0);
 }
 
-void loop(){
-   unsigned char irSignal=255;
-   if (thIR.receive(&irSignal)){
-        switch (irSignal){
-            case ZERO:
-            case ONE:
-            case TWO:
-            case THREE:
-            case FOUR:
-            case FIVE:
-            case SIX:
-            case SEVEN:
-            case EIGHT:
-            case NINE:
-                if (currScreen){
-                    thBuzzer.sound(BUTTON_INVALID);
-                } else {
-                    if (currNum<10) {
-                        currNum=currNum*10+irSignal;
-                        numUpdate(currNum, currScreen);
-                        thBuzzer.sound(BUTTON_ACCEPTED);
-                    } else thBuzzer.sound(BUTTON_INVALID);
-                }
-                break;
-            case ONE_HUNDRED_PLUS:
-            case TWO_HUNDRED_PLUS:
-            case NEXT:
-            case VOL_UP:
-                if (currScreen){
-                    thBuzzer.sound(BUTTON_INVALID);
-                } else {
-                    if (irSignal==ONE_HUNDRED_PLUS) irSignal=10;
-                    if (irSignal==TWO_HUNDRED_PLUS) irSignal=20;
-                    if (irSignal==NEXT||irSignal==VOL_UP) irSignal=1;
-                    currNum+=irSignal;
-                    if (currNum>99) currNum-=100;
-                    numUpdate(currNum, currScreen);
-                    thBuzzer.sound(BUTTON_ACCEPTED);
-                }
-                break;
-            case VOL_DOWN:
-            case PREV:
-                if (currScreen){
-                    thBuzzer.sound(BUTTON_INVALID);
-                } else {
-                    if (currNum==0) currNum=99; else currNum--;
-                    numUpdate(currNum, currScreen);
-                    thBuzzer.sound(BUTTON_ACCEPTED);
-                }
-                break;
-            case CHANNEL:
-            case CHANNEL_UP:
-            case CHANNEL_DOWN:
-                if (currScreen) {
-                    currScreen=0;
-                    numUpdate(currNum, currScreen);
-                }
-                else {
-                    currScreen=1;
-                    numUpdate(currScore, currScreen);
-                }
+void loop() {
+    unsigned char irSignal=255, irSignal2=255;
+    while (!thIR.receive(&irSignal)){}
+    switch(irSignal) {
+    case ZERO:
+    case ONE:
+    case TWO:
+    case THREE:
+    case FOUR:
+    case FIVE:
+    case SIX:
+    case SEVEN:
+    case EIGHT:
+    case NINE:
+        if(currScreen)
+            thBuzzer.sound(BUTTON_INVALID);
+        else {
+            if(currNum<10) {
+                currNum=currNum*10+irSignal;
+                numUpdate(currNum, currScreen);
                 thBuzzer.sound(BUTTON_ACCEPTED);
-                break;
-            case EQ:
-                if (currScreen){
-                    thBuzzer.sound(BUTTON_INVALID);
-                } else {
-                    if (currNum<10||currNum%10==0) currNum=0;
-                    else currNum-=(currNum%10);
-                    numUpdate(currNum, currScreen);
-                    thBuzzer.sound(BUTTON_ACCEPTED);
-                }
-                break;
-            case PLAY_PAUSE:
-                
-                break;
-            default:
-                thBuzzer.sound(BUTTON_INVALID);
+            } else thBuzzer.sound(BUTTON_INVALID);
         }
+        break;
+    case ONE_HUNDRED_PLUS:
+    case TWO_HUNDRED_PLUS:
+    case NEXT:
+    case VOL_UP:
+        if(currScreen)
+            thBuzzer.sound(BUTTON_INVALID);
+        else {
+            if(irSignal==ONE_HUNDRED_PLUS) irSignal=10;
+            if(irSignal==TWO_HUNDRED_PLUS) irSignal=20;
+            if(irSignal==NEXT||irSignal==VOL_UP) irSignal=1;
+            currNum+=irSignal;
+            if(currNum>99) currNum-=100;
+            numUpdate(currNum, currScreen);
+            thBuzzer.sound(BUTTON_ACCEPTED);
+        }
+        break;
+    case VOL_DOWN:
+    case PREV:
+        if(currScreen)
+            thBuzzer.sound(BUTTON_INVALID);
+        else {
+            if(currNum==0) currNum=99;
+            else currNum--;
+            numUpdate(currNum, currScreen);
+            thBuzzer.sound(BUTTON_ACCEPTED);
+        }
+        break;
+    case CHANNEL:
+    case CHANNEL_UP:
+    case CHANNEL_DOWN:
+        if(currScreen) {
+            currScreen=0;
+            numUpdate(currNum, currScreen);
+        } else {
+            currScreen=1;
+            numUpdate(currScore, currScreen);
+        }
+        thBuzzer.sound(BUTTON_ACCEPTED);
+        break;
+    case EQ:
+        if(currScreen)
+            thBuzzer.sound(BUTTON_INVALID);
+        else {
+            if(currNum<10||currNum%10==0) currNum=0;
+            else currNum-=(currNum%10);
+            numUpdate(currNum, currScreen);
+            thBuzzer.sound(BUTTON_ACCEPTED);
+        }
+        break;
+    case PLAY_PAUSE:{
+        goDisplay();
+        thBuzzer.sound(400);
+        thLedMatrix.clear();
+        delay(400);
+        goDisplay();
+        thBuzzer.sound(400);
+        thLedMatrix.clear();
+        delay(400);
+        goDisplay();
+        thBuzzer.sound(400);
+        thLedMatrix.clear();
+        while (!thIR.receive(&irSignal2)||irSignal2!=PLAY_PAUSE){};
+        if (shapeCheck(0)){
+            checkMarkDisplay();
+            checkMarkDisplay();
+            checkMarkDisplay();
+        } else {
+            crossMarkDisplay();
+            crossMarkDisplay();
+            crossMarkDisplay();
+        }
+        numUpdate(currScreen, currNum);
+        return;
+        break;
+    }
+    default:
+        thBuzzer.sound(BUTTON_INVALID);
     }
 }
