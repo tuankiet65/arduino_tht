@@ -10,6 +10,7 @@
 unsigned char currScore=0, currNum=0, currScreen=0;  
 
 void setup() {
+    scoreInit();
     currScore=scoreRead();
     Serial.begin(BAUD);
     thVLC.begin();
@@ -36,9 +37,7 @@ void loop() {
     case SEVEN:
     case EIGHT:
     case NINE:
-        if(currScreen)
-            thBuzzer.sound(BUTTON_INVALID);
-        else {
+        if(!currScreen){
             if(currNum<10) {
                 currNum=currNum*10+irSignal;
                 numUpdate(currNum, currScreen);
@@ -50,9 +49,7 @@ void loop() {
     case TWO_HUNDRED_PLUS:
     case NEXT:
     case VOL_UP:
-        if(currScreen)
-            thBuzzer.sound(BUTTON_INVALID);
-        else {
+        if(!currScreen){
             if(irSignal==ONE_HUNDRED_PLUS) irSignal=10;
             if(irSignal==TWO_HUNDRED_PLUS) irSignal=20;
             if(irSignal==NEXT||irSignal==VOL_UP) irSignal=1;
@@ -64,9 +61,7 @@ void loop() {
         break;
     case VOL_DOWN:
     case PREV:
-        if(currScreen)
-            thBuzzer.sound(BUTTON_INVALID);
-        else {
+        if(!currScreen){
             if(currNum==0) currNum=99;
             else currNum--;
             numUpdate(currNum, currScreen);
@@ -86,42 +81,23 @@ void loop() {
         thBuzzer.sound(BUTTON_ACCEPTED);
         break;
     case EQ:
-        if(currScreen)
-            thBuzzer.sound(BUTTON_INVALID);
-        else {
+        if(!currScreen){
             if(currNum<10||currNum%10==0) currNum=0;
             else currNum-=(currNum%10);
             numUpdate(currNum, currScreen);
             thBuzzer.sound(BUTTON_ACCEPTED);
         }
         break;
-    case PLAY_PAUSE:{
+    case PLAY_PAUSE:
         goDisplay();
-        thBuzzer.sound(400);
-        thLedMatrix.clear();
-        delay(400);
-        goDisplay();
-        thBuzzer.sound(400);
-        thLedMatrix.clear();
-        delay(400);
-        goDisplay();
-        thBuzzer.sound(400);
-        thLedMatrix.clear();
-        while (!thIR.receive(&irSignal2)||irSignal2!=PLAY_PAUSE){};
-        if (shapeCheck(0)){
+        while (!thIR.receive(&irSignal2)||irSignal2!=PLAY_PAUSE);
+        if (shapeCheck(currNum)){
             checkMarkDisplay();
-            checkMarkDisplay();
-            checkMarkDisplay();
-        } else {
-            crossMarkDisplay();
-            crossMarkDisplay();
-            crossMarkDisplay();
-        }
-        numUpdate(currScreen, currNum);
-        return;
+            scoreUpdate(currScore, currNum);
+            currScore=scoreRead();
+        } else crossMarkDisplay();
+        delay(1000);
+        numUpdate(currNum, currScreen);
         break;
-    }
-    default:
-        thBuzzer.sound(BUTTON_INVALID);
     }
 }

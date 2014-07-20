@@ -11,7 +11,18 @@ const unsigned char PROGMEM CHECK_MARK[2][16]= {
     {4, 5, 5, 6, 6, 7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1}
 };
 
-const unsigned char PROGMEM GO[16]= {
+const unsigned char PROGMEM CROSS_MARK[16]={
+    0, 0,
+    B01000010, 0,
+    B00100100, 0,
+    B00011000, 0,
+    B00011000, 0,
+    B00100100, 0,
+    B01000010, 0,
+    0, 0
+};
+
+const unsigned char PROGMEM GO[16]={
     0, B01111000,
     0, B10000100,
     0, B10100100,
@@ -120,8 +131,52 @@ void checkMarkDisplay() {
         thLedMatrix.setPixel(pgm_read_byte(&CHECK_MARK[0][i+1]), pgm_read_byte(&CHECK_MARK[1][i+1]), GREEN);
         delay(50);
     }
+    delay(500);
+    thLedMatrix.clear();
+    for(i=0; i<16; i+=2) {
+        thLedMatrix.setPixel(pgm_read_byte(&CHECK_MARK[0][i]), pgm_read_byte(&CHECK_MARK[1][i]), GREEN);
+        thLedMatrix.setPixel(pgm_read_byte(&CHECK_MARK[0][i+1]), pgm_read_byte(&CHECK_MARK[1][i+1]), GREEN);
+        delay(50);
+    }
+    delay(500);
+    thLedMatrix.clear();
+    for(i=0; i<16; i+=2) {
+        thLedMatrix.setPixel(pgm_read_byte(&CHECK_MARK[0][i]), pgm_read_byte(&CHECK_MARK[1][i]), GREEN);
+        thLedMatrix.setPixel(pgm_read_byte(&CHECK_MARK[0][i+1]), pgm_read_byte(&CHECK_MARK[1][i+1]), GREEN);
+        delay(50);
+    }
+    delay(500);
 }
 
 void goDisplay(){
+    thLedMatrix.clear();
     thLedMatrix.setBitmap(GO);
+    delay(300);
+    thLedMatrix.clear();
+    delay(300);
+    thLedMatrix.setBitmap(GO);
+    delay(300);
+    thLedMatrix.clear();
+    delay(300);
+    thLedMatrix.setBitmap(GO);
+    delay(300);
+    thLedMatrix.clear();
+}
+
+void crossMarkDisplay(){
+    thLedMatrix.clear();
+    thLedMatrix.setBitmap(CROSS_MARK);
+    delay(250);
+    thLedMatrix.clear();
+    delay(250);
+    thLedMatrix.setBitmap(CROSS_MARK);
+    delay(250);
+    thLedMatrix.clear();
+    delay(250);
+    thLedMatrix.setBitmap(CROSS_MARK);
+    delay(250);
+    thLedMatrix.clear();
+    delay(250);
+    thLedMatrix.setBitmap(CROSS_MARK);
+    delay(250);
 }
