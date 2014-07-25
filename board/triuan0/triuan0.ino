@@ -25,7 +25,7 @@ void setup() {
 
 void loop() {
     unsigned char irSignal=255, irSignal2=255;
-    while (!thIR.receive(&irSignal)){}
+    while (!thIR.receive(&irSignal));
     switch(irSignal) {
     case ZERO:
     case ONE:
