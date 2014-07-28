@@ -11,7 +11,7 @@ const unsigned char PROGMEM CHECK_MARK[2][16]= {
     {4, 5, 5, 6, 6, 7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1}
 };
 
-const unsigned char PROGMEM CROSS_MARK[16]={
+const unsigned char PROGMEM CROSS_MARK[16]= {
     0, 0,
     B01000010, 0,
     B00100100, 0,
@@ -22,7 +22,7 @@ const unsigned char PROGMEM CROSS_MARK[16]={
     0, 0
 };
 
-const unsigned char PROGMEM GO[16]={
+const unsigned char PROGMEM GO[16]= {
     0, B01111000,
     0, B10000100,
     0, B10100100,
@@ -148,7 +148,7 @@ void checkMarkDisplay() {
     delay(500);
 }
 
-void goDisplay(){
+void goDisplay() {
     thLedMatrix.clear();
     thLedMatrix.setBitmap(GO);
     delay(300);
@@ -163,7 +163,7 @@ void goDisplay(){
     thLedMatrix.clear();
 }
 
-void crossMarkDisplay(){
+void crossMarkDisplay() {
     thLedMatrix.clear();
     thLedMatrix.setBitmap(CROSS_MARK);
     delay(250);

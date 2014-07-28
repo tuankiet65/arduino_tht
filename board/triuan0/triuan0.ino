@@ -7,7 +7,7 @@
 #include <thLedMatrix.h>
 #include <thIR.h>
 
-unsigned char currScore=0, currNum=0, currScreen=0;  
+unsigned char currScore=0, currNum=0, currScreen=0;
 
 void setup() {
     scoreInit();
@@ -17,7 +17,6 @@ void setup() {
     thLedMatrix.begin();
     thBuzzer.begin();
     thIR.begin();
-    Serial.println("Started");
     thBuzzer.sound(1000);
     startSplash();
     numUpdate(0, 0);
@@ -25,7 +24,7 @@ void setup() {
 
 void loop() {
     unsigned char irSignal=255, irSignal2=255;
-    while (!thIR.receive(&irSignal));
+    while(!thIR.receive(&irSignal));
     switch(irSignal) {
     case ZERO:
     case ONE:
@@ -37,7 +36,7 @@ void loop() {
     case SEVEN:
     case EIGHT:
     case NINE:
-        if(!currScreen){
+        if(!currScreen) {
             if(currNum<10) {
                 currNum=currNum*10+irSignal;
                 numUpdate(currNum, currScreen);
@@ -49,7 +48,7 @@ void loop() {
     case TWO_HUNDRED_PLUS:
     case NEXT:
     case VOL_UP:
-        if(!currScreen){
+        if(!currScreen) {
             if(irSignal==ONE_HUNDRED_PLUS) irSignal=10;
             if(irSignal==TWO_HUNDRED_PLUS) irSignal=20;
             if(irSignal==NEXT||irSignal==VOL_UP) irSignal=1;
@@ -61,7 +60,7 @@ void loop() {
         break;
     case VOL_DOWN:
     case PREV:
-        if(!currScreen){
+        if(!currScreen) {
             if(currNum==0) currNum=99;
             else currNum--;
             numUpdate(currNum, currScreen);
@@ -81,7 +80,7 @@ void loop() {
         thBuzzer.sound(BUTTON_ACCEPTED);
         break;
     case EQ:
-        if(!currScreen){
+        if(!currScreen) {
             if(currNum<10||currNum%10==0) currNum=0;
             else currNum-=(currNum%10);
             numUpdate(currNum, currScreen);
@@ -90,8 +89,8 @@ void loop() {
         break;
     case PLAY_PAUSE:
         goDisplay();
-        while (!thIR.receive(&irSignal2)||irSignal2!=PLAY_PAUSE);
-        if (shapeCheck(currNum)){
+        while(!thIR.receive(&irSignal2)||irSignal2!=PLAY_PAUSE);
+        if(shapeCheck(currNum)) {
             checkMarkDisplay();
             scoreUpdate(currScore, currNum);
             currScore=scoreRead();
