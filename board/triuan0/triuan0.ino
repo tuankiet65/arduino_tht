@@ -19,9 +19,7 @@ void setup() {
     thIR.begin();
     thBuzzer.sound(1000);
     startSplash();
-    numUpdate(0, 0);
-    for (unsigned char i=0; i<=12; i++) Serial.println(EEPROM.read(i), BIN);
-}
+    numUpdate(0, 0);}
 
 void loop() {
     unsigned char irSignal=255;
