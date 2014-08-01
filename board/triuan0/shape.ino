@@ -68,44 +68,58 @@ const unsigned char PROGMEM SHAPE[][7][11]= {
         {5, 75, 6, 60, 0},
         {9, 24, 0},
         {0}, {0}
+    },
+    {
+       {2, 49, 5, 15, 6, 16, 3, 165, 0},
+       {4, 23, 3, 22, 0},
+       {0}, {0}, {0}, {0}, {0} 
+    },
+    {
+       {5, 22, 0},
+       {8, 22, 4, 160, 5, 46, 0},
+       {9, 13, 6, 80, 0},
+       {0}, {0}, {0}, {0}
+    },
+    {
+       {2, 235, 2, 13, 0},
+       {2, 235, 9, 65,0},
+       {4, 23, 0},
+       {8, 22, 0},
+       {9, 165, 0}
     }
 };
 
-        unsigned char signalWait(unsigned char port) {
-            unsigned char i=0;
-            Serial.println("Waiting");
-            while(!thVLC.receiveReady(port)) {
-                delay(100);
-                i++;
-                if(i==300) return 0;
-            }
-            return 1;
-        }
+unsigned char signalWait(unsigned char port) {
+    unsigned char i=0;
+    while(!thVLC.receiveReady(port)) {
+        delay(100);
+        i++;
+        if(i==300) return 0;
+    }
+    return 1;
+}
 
-        unsigned char shapeCheck(unsigned char num) {
-            thLedMatrix.setPixel(1, 6, GREEN);
-            thLedMatrix.setPixel(3, 6, GREEN);
-            thLedMatrix.setPixel(5, 6, GREEN);
-            unsigned char i=0, i2=0;
-            for(i=0; i<7; i++) {
-                unsigned char a=pgm_read_byte(&SHAPE[num][i][0]);
-                Serial.println(a);
-                if(a) {
-                    Serial.println(pgm_read_byte(&SHAPE[num][i][1]));
-                    thVLC.sendByte(a, pgm_read_byte(&SHAPE[num][i][1]));
-                    delay(1500);
-                    unsigned char aaa=thVLC.receiveResult(a);
-                    Serial.println(aaa);
-                    if(aaa==SUCCESS) {
-                        if(pgm_read_byte(&SHAPE[num][i][2])) {
-                            thVLC.sendByte(a, MESSAGE_BEGIN);
-                            for(i2=2; pgm_read_byte(&SHAPE[num][i][i2])!=0; i2++) thVLC.sendByte(a, pgm_read_byte(&SHAPE[num][i][i2]));
-                            thVLC.sendByte(a, MESSAGE_END);
-                            if(!signalWait(a)) return 0;
-                            if(thVLC.receiveResult(a)==FAIL) return 0;
-                        } else thVLC.sendByte(a, IGNORE);
-                    } else return 0;
-                }
-            }
-            return 1;
+unsigned char shapeCheck(unsigned char num) {
+    thLedMatrix.clear();
+    thLedMatrix.setPixel(1, 6, GREEN);
+    thLedMatrix.setPixel(3, 6, GREEN);
+    thLedMatrix.setPixel(5, 6, GREEN);
+    unsigned char i=0, i2=0;
+    for(i=0; i<7; i++) {
+        unsigned char a=pgm_read_byte(&SHAPE[num][i][0]);
+        if(a) {
+            thVLC.sendByte(a, pgm_read_byte(&SHAPE[num][i][1]));
+            delay(1000);
+            if(thVLC.receiveResult(a)==SUCCESS) {
+                if(pgm_read_byte(&SHAPE[num][i][2])) {
+                    thVLC.sendByte(a, MESSAGE_BEGIN);
+                    for(i2=2; pgm_read_byte(&SHAPE[num][i][i2])!=0; i2++) thVLC.sendByte(a, pgm_read_byte(&SHAPE[num][i][i2]));
+                    thVLC.sendByte(a, MESSAGE_END);
+                    if(!signalWait(a)) return 0;
+                    if(thVLC.receiveResult(a)==FAIL) return 0;
+                } else thVLC.sendByte(a, IGNORE);
+            } else return 0;
         }
+    }
+    return 1;
+}

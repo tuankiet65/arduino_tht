@@ -42,12 +42,10 @@ void setup() {
     thVLC.begin();
     portIDGen();
     Serial.println("Started");
-    i=maxPort;
 }
 
 unsigned char signalWait(unsigned char port) {
     unsigned char i=0;
-    Serial.println("Waiting");
     while(!thVLC.receiveReady(port)) {
         delay(100);
         i++;
@@ -57,58 +55,39 @@ unsigned char signalWait(unsigned char port) {
 }
 
 void loop() {
-    Serial.print(F("Waiting for handshake message on port "));
-    Serial.println(i);
-    unsigned char g=((isUpsideDown())?(PORT_ID[i]*5):(PORT_ID[i]));
-    Serial.println(g);
+    delay(50);
+    unsigned char tempPID=((isUpsideDown())?(PORT_ID[i]*5):(PORT_ID[i]));
     if(thVLC.receiveReady(i)) {
-        if(thVLC.receiveResult(i)==g) {
-            Serial.print(F("Received handshake on port "));
-            Serial.println(i);
-            Serial.println(F("Now send port ID"));
+        if(thVLC.receiveResult(i)==tempPID) {
             thVLC.sendByte(i, SUCCESS);
             unsigned char b=0, a[8]= {0};
             char i2=-1;
             if(signalWait(i)) b=thVLC.receiveResult(i);
             else return;
             if(b==MESSAGE_BEGIN) {
-                Serial.println(F("Recceived MESSAGE_BEGIN, begin receiving data"));
                 while(a[i2]!=MESSAGE_END) {
                     i2++;
                     if(!signalWait(i)) return;
                     a[i2]=thVLC.receiveResult(i);
-                    Serial.println(i2);
-                    Serial.println(a[i2]);
                 }
-                Serial.println(F("Done receiving data, now check"));
                 thVLC.sendByte(a[0], a[1]);
                 delay(1000);
                 if(thVLC.receiveReady(a[0])&&thVLC.receiveResult(a[0])==SUCCESS) {
-                    Serial.println("Found board");
-                    if(i2-2==0) {
-                        thVLC.sendByte(a[0], IGNORE);
-                        thVLC.sendByte(i, SUCCESS);
-                    } else {
+                    if(i2-2){
                         unsigned char i3=0;
-                        Serial.println(F("Sending bytes"));
                         thVLC.sendByte(a[0], MESSAGE_BEGIN);
-                        for(i3=2; a[i3]!=MESSAGE_END; i3++) {
-                            Serial.println(a[i3]);
-                            thVLC.sendByte(a[0], a[i3]);
-                        }
+                        for(i3=2; a[i3]!=MESSAGE_END; i3++) thVLC.sendByte(a[0], a[i3]);
                         thVLC.sendByte(a[0], MESSAGE_END);
                         if(!signalWait(a[0])) return;
-                        unsigned char x=thVLC.receiveResult(a[0]);
-                        Serial.println(x);
-                        thVLC.sendByte(i, x);
+                        thVLC.sendByte(i, thVLC.receiveResult(a[0]));
+                    } else {
+                        thVLC.sendByte(a[0], IGNORE);
+                        thVLC.sendByte(i, SUCCESS);
                     }
-                } else {
-                    Serial.println("Found no board");
-                    thVLC.sendByte(i, FAIL);
-                }
+                } else thVLC.sendByte(i, FAIL);
             }
         }
     };
-    i--;
-    if(i<2) i=maxPort;
+    i++;
+    if(i>maxPort) i=2;
 }
