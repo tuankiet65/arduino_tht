@@ -1,4 +1,4 @@
-uno.name=Tri Uan 0(Arduino Uno)
+uno.name=Tri Uan 0 (Arduino Uno)
 uno.upload.protocol=arduino
 uno.upload.maximum_size=32256
 uno.upload.speed=115200

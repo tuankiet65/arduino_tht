@@ -10,16 +10,17 @@
 unsigned char currScore=0, currNum=0, currScreen=0;
 
 void setup() {
-    scoreInit();
-    currScore=scoreRead();
     Serial.begin(BAUD);
     thVLC.begin();
     thLedMatrix.begin();
     thBuzzer.begin();
     thIR.begin();
+    scoreInit();
+    currScore=scoreRead();
     thBuzzer.sound(1000);
     startSplash();
-    numUpdate(0, 0);}
+    numUpdate(0, 0);
+}
 
 void loop() {
     unsigned char irSignal=255;
@@ -86,14 +87,14 @@ void loop() {
             break;
         case PLAY_PAUSE:
             goDisplay();
-            irSignal=0;
-            while(!thIR.receive(&irSignal)||irSignal!=PLAY_PAUSE);
-            if(shapeCheck(currNum)) {
-                checkMarkDisplay();
-                scoreUpdate(currScore, currNum);
-                currScore=scoreRead();
-            } else crossMarkDisplay();
-            delay(1000);
+            if (waitScreen()){
+                if(shapeCheck(currNum)) {
+                    checkMarkDisplay();
+                    scoreUpdate(currScore, currNum);
+                    currScore=scoreRead();
+                } else crossMarkDisplay();
+                delay(500);
+            }
             numUpdate(currNum, currScreen);
             break;
     }

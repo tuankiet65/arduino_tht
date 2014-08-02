@@ -7,5 +7,5 @@ void setup() {
 }
 
 void loop() {
-    for(int i=2; i<=5; i++) thVLC.sendByte(i, 255);
+    for(int i=2; i<=6; i++) thVLC.sendByte(i, 255);
 }

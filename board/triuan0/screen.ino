@@ -5,6 +5,11 @@
 
 unsigned char prevNum=255;
 
+const unsigned char PROGMEM WAIT_SCREEN[2][64]={
+    {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 2, 3, 4, 5, 5, 5, 5, 4, 3, 2, 2, 2, 3, 4, 4, 3},
+    {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 4, 3, 3, 3, 4, 4}
+};
+
 const unsigned char PROGMEM CHECK_MARK[2][16]= {
     {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7},
     {4, 5, 5, 6, 6, 7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1}
@@ -153,4 +158,27 @@ void crossMarkDisplay() {
         thLedMatrix.clear();
         delay(250);
     }
+}
+
+unsigned char waitScreen(){
+    unsigned char irSignal=255, i=0, i2=0;
+    unsigned long prevMillis, currMillis;
+    prevMillis=millis();
+    currMillis=prevMillis;
+    while (!(thIR.receive(&irSignal)&&(irSignal==PLAY_PAUSE||irSignal==EQ))){
+        if (currMillis-prevMillis>=100) {
+            if (i2%2) 
+                thLedMatrix.setPixel(pgm_read_byte(&WAIT_SCREEN[0][i]), pgm_read_byte(&WAIT_SCREEN[1][i]), BLACK);
+            else
+                thLedMatrix.setPixel(pgm_read_byte(&WAIT_SCREEN[0][i]), pgm_read_byte(&WAIT_SCREEN[1][i]), GREEN);
+            prevMillis=currMillis;
+            i++;
+            if (i==64) {
+              i=0;
+              i2++;
+            }
+        }
+        currMillis=millis();
+    }
+    if (irSignal==PLAY_PAUSE) return 1; else return 0;
 }
