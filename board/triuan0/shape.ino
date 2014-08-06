@@ -1,5 +1,6 @@
 #include <avr/pgmspace.h>
 #include <message.h>
+#include <thVLC.h>
 
 const unsigned char PROGMEM SHAPE[][5][11]= {
 	{
@@ -153,10 +154,7 @@ unsigned char signalWait(unsigned char port) {
 }
 
 unsigned char shapeCheck(unsigned char num) {
-	thLedMatrix.clear();
-	thLedMatrix.setPixel(1, 6, GREEN);
-	thLedMatrix.setPixel(3, 6, GREEN);
-	thLedMatrix.setPixel(5, 6, GREEN);
+	checkDisplay();
 	unsigned char i=0, i2=0;
 	for(i=0; i<5; i++) {
 		unsigned char port=pgm_read_byte(&SHAPE[num][i][0]);

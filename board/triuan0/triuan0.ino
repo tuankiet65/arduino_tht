@@ -1,23 +1,19 @@
-#include <EEPROM.h>
 #include <digitalWriteFast.h>
 #include <message.h>
-#include <thBuzzer.h>
 #include <thAVR.h>
 #include <thVLC.h>
-#include <thLedMatrix.h>
 #include <thIR.h>
 
 unsigned char currScore=0, currNum=0, currScreen=0;
 
 void setup() {
-    Serial.begin(BAUD);
     thVLC.begin();
     thLedMatrix.begin();
-    thBuzzer.begin();
     thIR.begin();
     scoreInit();
+    soundInit();
     currScore=scoreRead();
-    thBuzzer.sound(1000);
+    soundDelay(1000);
     startSplash();
     numUpdate(0, 0);
 }
@@ -40,7 +36,7 @@ void loop() {
                 if (currNum>10) currNum%=10;
                 currNum=currNum*10+irSignal;
                 numUpdate(currNum, currScreen);
-                thBuzzer.sound(BUTTON_ACCEPTED);
+                soundDelay(BUTTON_ACCEPTED);
             }
             break;
         case ONE_HUNDRED_PLUS:
@@ -54,7 +50,7 @@ void loop() {
                 currNum+=irSignal;
                 if(currNum>99) currNum-=100;
                 numUpdate(currNum, currScreen);
-                thBuzzer.sound(BUTTON_ACCEPTED);
+                soundDelay(BUTTON_ACCEPTED);
             }
             break;
         case VOL_DOWN:
@@ -63,7 +59,7 @@ void loop() {
                 if(currNum==0) currNum=99;
                 else currNum--;
                 numUpdate(currNum, currScreen);
-                thBuzzer.sound(BUTTON_ACCEPTED);
+                soundDelay(BUTTON_ACCEPTED);
             }
             break;
         case CHANNEL:
@@ -76,25 +72,23 @@ void loop() {
                 currScreen=1;
                 numUpdate(currScore, currScreen);
             }
-            thBuzzer.sound(BUTTON_ACCEPTED);
+            soundDelay(BUTTON_ACCEPTED);
             break;
         case EQ:
             if(!currScreen) {
                 currNum/=10;
                 numUpdate(currNum, currScreen);
-                thBuzzer.sound(BUTTON_ACCEPTED);
+                soundDelay(BUTTON_ACCEPTED);
             }
             break;
         case PLAY_PAUSE:
             goDisplay();
-            if (waitScreen()){
+            if (waitScreen())
                 if(shapeCheck(currNum)) {
                     checkMarkDisplay();
                     scoreUpdate(currScore, currNum);
                     currScore=scoreRead();
                 } else crossMarkDisplay();
-                delay(500);
-            }
             numUpdate(currNum, currScreen);
             break;
     }

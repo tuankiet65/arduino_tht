@@ -1,4 +1,5 @@
 #include <avr/pgmspace.h>
+#include <thLedMatrix.h>
 
 #define RIGHT 4
 #define LEFT 0
@@ -158,15 +159,17 @@ void crossMarkDisplay() {
         thLedMatrix.clear();
         delay(250);
     }
+    delay(500);
 }
 
 unsigned char waitScreen(){
+    thLedMatrix.clear();
     unsigned char irSignal=255, i=0, i2=0;
     unsigned long prevMillis, currMillis;
     prevMillis=millis();
     currMillis=prevMillis;
     while (!(thIR.receive(&irSignal)&&(irSignal==PLAY_PAUSE||irSignal==EQ))){
-        if (currMillis-prevMillis>=100) {
+        if (currMillis-prevMillis>=500) {
             if (i2%2) 
                 thLedMatrix.setPixel(pgm_read_byte(&WAIT_SCREEN[0][i]), pgm_read_byte(&WAIT_SCREEN[1][i]), BLACK);
             else
@@ -181,4 +184,11 @@ unsigned char waitScreen(){
         currMillis=millis();
     }
     if (irSignal==PLAY_PAUSE) return 1; else return 0;
+}
+
+void checkDisplay(){
+    thLedMatrix.clear();
+    thLedMatrix.setPixel(1, 6, GREEN);
+    thLedMatrix.setPixel(3, 6, GREEN);
+    thLedMatrix.setPixel(5, 6, GREEN);
 }

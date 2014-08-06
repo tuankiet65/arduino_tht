@@ -38,10 +38,8 @@ void portIDGen() {
     i=2;
 }
 void setup() {
-    Serial.begin(BAUD);
     thVLC.begin();
     portIDGen();
-    Serial.println("Started");
 }
 
 unsigned char signalWait(unsigned char port) {
